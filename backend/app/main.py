@@ -1,0 +1,28 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from .database import Base, engine
+from .routers import rooms, devices, locations, interfaces, parts, diagrams, backup
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="HomeNet Map JP API", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/api/health")
+def health():
+    return {"success": True, "message": "HomeNet Map JP API is running"}
+
+app.include_router(rooms.router, prefix="/api")
+app.include_router(devices.router, prefix="/api")
+app.include_router(locations.router, prefix="/api")
+app.include_router(interfaces.router, prefix="/api")
+app.include_router(parts.router, prefix="/api")
+app.include_router(diagrams.router, prefix="/api")
+app.include_router(backup.router, prefix="/api")

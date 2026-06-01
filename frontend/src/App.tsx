@@ -1,0 +1,27 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Layout from './components/Layout';
+import DashboardPage from './pages/DashboardPage';
+import RoomsPage from './pages/RoomsPage';
+import DevicesPage from './pages/DevicesPage';
+import DeviceDetailPage from './pages/DeviceDetailPage';
+import DiagramPage from './pages/DiagramPage';
+import BackupPage from './pages/BackupPage';
+import SettingsPage from './pages/SettingsPage';
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/rooms" element={<RoomsPage />} />
+          <Route path="/devices" element={<DevicesPage />} />
+          <Route path="/devices/:id" element={<DeviceDetailPage />} />
+          <Route path="/diagram" element={<DiagramPage />} />
+          <Route path="/backup" element={<BackupPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}

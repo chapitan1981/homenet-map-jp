@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: homenet-map-jp-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT}:8000"
+    volumes:
+      - ./backend/app/data:/app/app/data
+    environment:
+      - TZ=Asia/Tokyo
+      - DATABASE_URL=sqlite:///./app/data/homenet.db
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: homenet-map-jp-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - TZ=Asia/Tokyo
