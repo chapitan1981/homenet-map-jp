@@ -160,3 +160,14 @@ button {
 .tag-list { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
 .tag { display:inline-flex; align-items:center; gap:6px; background:#1e293b; border:1px solid #334155; border-radius:999px; padding:6px 10px; }
 .tag button { border:none; padding:0 4px; background:transparent; color:#fca5a5; }
+
+
+.photo-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:14px; margin-top:14px; }
+.photo-card { background:#020617; border:1px solid #334155; border-radius:12px; padding:10px; }
+.photo-card img { width:100%; height:140px; object-fit:cover; border-radius:8px; border:1px solid #1f2937; }
+.photo-card p { font-size:12px; color:#cbd5e1; word-break:break-all; }
+.rack-view { display:grid; gap:4px; max-width:760px; margin-top:16px; }
+.rack-unit { display:grid; grid-template-columns:64px 1fr 40px; align-items:center; min-height:34px; border:1px solid #334155; background:#020617; border-radius:8px; padding:4px 8px; }
+.rack-unit.occupied { background:#1e293b; border-color:#60a5fa; }
+.rack-unit span { color:#93c5fd; font-weight:bold; }
+.primary-tab { display:inline-block; padding:7px 10px; margin:0 8px 8px 0; border-radius:8px; background:#2563eb; color:white; border:1px solid #2563eb; }

@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from .database import Base, engine
-from .routers import rooms, devices, locations, interfaces, parts, diagrams, backup, tags
+from .routers import rooms, devices, locations, interfaces, parts, diagrams, backup, tags, photos, racks
 
 Base.metadata.create_all(bind=engine)
 
@@ -14,6 +15,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/uploads", StaticFiles(directory="/app/app/data/uploads"), name="uploads")
 
 @app.get("/api/health")
 def health():
@@ -28,3 +31,6 @@ app.include_router(diagrams.router, prefix="/api")
 app.include_router(backup.router, prefix="/api")
 
 app.include_router(tags.router, prefix="/api")
+
+app.include_router(photos.router, prefix="/api")
+app.include_router(racks.router, prefix="/api")

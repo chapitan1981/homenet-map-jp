@@ -90,3 +90,42 @@ class DeviceTag(Base):
     id = Column(Integer, primary_key=True, index=True)
     device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
     tag_name = Column(String, nullable=False)
+
+
+class DevicePhoto(Base):
+    __tablename__ = "device_photos"
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    photo_type = Column(String, default="front")
+    file_name = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
+    note = Column(Text, default="")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class RoomPhoto(Base):
+    __tablename__ = "room_photos"
+    id = Column(Integer, primary_key=True, index=True)
+    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False)
+    photo_type = Column(String, default="background")
+    file_name = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
+    note = Column(Text, default="")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class Rack(Base):
+    __tablename__ = "racks"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=True)
+    total_units = Column(Integer, default=12)
+    description = Column(Text, default="")
+
+class RackItem(Base):
+    __tablename__ = "rack_items"
+    id = Column(Integer, primary_key=True, index=True)
+    rack_id = Column(Integer, ForeignKey("racks.id"), nullable=False)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=True)
+    label = Column(String, default="")
+    start_unit = Column(Integer, default=1)
+    unit_size = Column(Integer, default=1)
+    note = Column(Text, default="")

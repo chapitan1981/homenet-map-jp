@@ -122,3 +122,54 @@ class DeviceTag(DeviceTagBase):
     device_id: int
     class Config:
         from_attributes = True
+
+
+class DevicePhoto(BaseModel):
+    id: int
+    device_id: int
+    photo_type: str = "front"
+    file_name: str
+    file_path: str
+    note: str = ""
+    class Config:
+        from_attributes = True
+
+class RoomPhoto(BaseModel):
+    id: int
+    room_id: int
+    photo_type: str = "background"
+    file_name: str
+    file_path: str
+    note: str = ""
+    class Config:
+        from_attributes = True
+
+class RackBase(BaseModel):
+    name: str
+    room_id: Optional[int] = None
+    total_units: int = 12
+    description: str = ""
+
+class RackCreate(RackBase):
+    pass
+
+class Rack(RackBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+class RackItemBase(BaseModel):
+    device_id: Optional[int] = None
+    label: str = ""
+    start_unit: int = 1
+    unit_size: int = 1
+    note: str = ""
+
+class RackItemCreate(RackItemBase):
+    pass
+
+class RackItem(RackItemBase):
+    id: int
+    rack_id: int
+    class Config:
+        from_attributes = True

@@ -2,57 +2,29 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import { Room } from '../types/room';
 
+type RoomPhoto = { id:number; room_id:number; photo_type:string; file_name:string; file_path:string; note:string };
 const emptyForm = { name: '', floor: '', description: '', sort_order: 0 };
 
 export default function RoomsPage() {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [form, setForm] = useState(emptyForm);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [rooms,setRooms]=useState<Room[]>([]);
+  const [form,setForm]=useState(emptyForm);
+  const [editingId,setEditingId]=useState<number|null>(null);
+  const [selectedRoom,setSelectedRoom]=useState<Room|null>(null);
+  const [photos,setPhotos]=useState<RoomPhoto[]>([]);
+  const [file,setFile]=useState<File|null>(null);
 
-  const load = async () => setRooms((await api.get('/rooms')).data);
-  useEffect(() => { load(); }, []);
+  const load=async()=>setRooms((await api.get('/rooms')).data);
+  const loadPhotos=async(r:Room)=>setPhotos((await api.get(`/rooms/${r.id}/photos`)).data);
+  useEffect(()=>{load()},[]);
+  const reset=()=>{setEditingId(null);setForm(emptyForm)};
+  const submit=async()=>{if(!form.name)return; editingId?await api.put(`/rooms/${editingId}`,form):await api.post('/rooms',form); reset(); load();};
+  const edit=(r:Room)=>{setEditingId(r.id);setForm({name:r.name,floor:r.floor||'',description:r.description||'',sort_order:r.sort_order||0})};
+  const upload=async()=>{if(!selectedRoom||!file)return; const fd=new FormData(); fd.append('file',file); fd.append('photo_type','background'); fd.append('note','部屋背景画像'); await api.post(`/rooms/${selectedRoom.id}/photos`,fd,{headers:{'Content-Type':'multipart/form-data'}}); setFile(null); loadPhotos(selectedRoom);};
 
-  const reset = () => { setEditingId(null); setForm(emptyForm); };
-
-  const submit = async () => {
-    if (!form.name) return;
-    editingId ? await api.put(`/rooms/${editingId}`, form) : await api.post('/rooms', form);
-    reset();
-    load();
-  };
-
-  const edit = (r: Room) => {
-    setEditingId(r.id);
-    setForm({ name: r.name, floor: r.floor || '', description: r.description || '', sort_order: r.sort_order || 0 });
-  };
-
-  const remove = async (id: number) => {
-    if (!confirm('この部屋を削除しますか？')) return;
-    await api.delete(`/rooms/${id}`);
-    load();
-  };
-
-  return (
-    <>
-      <h2>部屋管理</h2>
-      <div className="card form">
-        <h3>{editingId ? '部屋を編集' : '部屋を追加'}</h3>
-        <input placeholder="部屋名" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
-        <input placeholder="階層 例: 1F" value={form.floor} onChange={e => setForm({...form, floor: e.target.value})} />
-        <textarea placeholder="説明" value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
-        <div>
-          <button onClick={submit}>{editingId ? '保存' : '部屋を追加'}</button>
-          {editingId && <button className="secondary-button" onClick={reset}>キャンセル</button>}
-        </div>
-      </div>
-      <div className="card">
-        <table className="table">
-          <thead><tr><th>ID</th><th>部屋名</th><th>階層</th><th>説明</th><th>操作</th></tr></thead>
-          <tbody>
-            {rooms.map(r => <tr key={r.id}><td>{r.id}</td><td>{r.name}</td><td>{r.floor}</td><td>{r.description}</td><td><button className="small-button" onClick={() => edit(r)}>編集</button><button className="danger-button" onClick={() => remove(r.id)}>削除</button></td></tr>)}
-          </tbody>
-        </table>
-      </div>
-    </>
-  );
+  return <>
+    <h2>部屋管理</h2>
+    <div className="card form"><h3>{editingId?'部屋を編集':'部屋を追加'}</h3><input placeholder="部屋名" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/><input placeholder="階層" value={form.floor} onChange={e=>setForm({...form,floor:e.target.value})}/><textarea placeholder="説明" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/><div><button onClick={submit}>{editingId?'保存':'部屋を追加'}</button>{editingId&&<button className="secondary-button" onClick={reset}>キャンセル</button>}</div></div>
+    <div className="card"><table className="table"><thead><tr><th>ID</th><th>部屋名</th><th>階層</th><th>説明</th><th>操作</th></tr></thead><tbody>{rooms.map(r=><tr key={r.id}><td>{r.id}</td><td>{r.name}</td><td>{r.floor}</td><td>{r.description}</td><td><button className="small-button" onClick={()=>edit(r)}>編集</button><button className="small-button" onClick={()=>{setSelectedRoom(r);loadPhotos(r)}}>写真</button><button className="danger-button" onClick={async()=>{if(confirm('削除しますか？')){await api.delete(`/rooms/${r.id}`);load();}}}>削除</button></td></tr>)}</tbody></table></div>
+    {selectedRoom&&<div className="card"><h3>部屋写真：{selectedRoom.name}</h3><div className="inline-form"><input type="file" accept="image/*" onChange={e=>setFile(e.target.files?.[0]||null)}/><button onClick={upload}>背景画像を追加</button></div><div className="photo-grid">{photos.map(p=><div className="photo-card" key={p.id}><img src={p.file_path}/><p>{p.file_name}</p><button className="danger-button" onClick={async()=>{await api.delete(`/room-photos/${p.id}`);loadPhotos(selectedRoom)}}>削除</button></div>)}</div></div>}
+  </>;
 }

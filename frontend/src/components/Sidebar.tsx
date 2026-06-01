@@ -10,6 +10,7 @@ export default function Sidebar() {
         <Link to="/devices">機器管理</Link>
         <Link to="/diagram">構成図</Link>
         <Link to="/backup">バックアップ</Link>
+        <Link to="/racks">ラックビュー</Link>
         <Link to="/settings">設定</Link>
       </nav>
     </aside>

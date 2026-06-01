@@ -7,6 +7,7 @@ import DeviceDetailPage from './pages/DeviceDetailPage';
 import DiagramPage from './pages/DiagramPage';
 import BackupPage from './pages/BackupPage';
 import SettingsPage from './pages/SettingsPage';
+import RackPage from './pages/RackPage';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/devices/:id" element={<DeviceDetailPage />} />
           <Route path="/diagram" element={<DiagramPage />} />
           <Route path="/backup" element={<BackupPage />} />
+          <Route path="/racks" element={<RackPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

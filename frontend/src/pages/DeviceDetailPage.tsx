@@ -7,6 +7,7 @@ import { DEVICE_ICONS, getDeviceIcon } from '../types/icon';
 type Part = { id:number; device_id:number; part_type:string; vendor:string; model:string; spec:string; quantity:number; note:string };
 type Nic = { id:number; device_id:number; interface_name:string; ip_address:string; mac_address:string; network_type:string; is_primary:boolean; last_seen_at:string };
 type Tag = { id:number; device_id:number; tag_name:string };
+type DevicePhoto = { id:number; device_id:number; photo_type:string; file_name:string; file_path:string; note:string };
 
 const emptyPart = { part_type:'CPU', vendor:'', model:'', spec:'', quantity:1, note:'' };
 const emptyNic = { interface_name:'eth0', ip_address:'', mac_address:'', network_type:'LAN', is_primary:true, last_seen_at:'' };
@@ -24,10 +25,13 @@ export default function DeviceDetailPage() {
   const [editingPartId,setEditingPartId]=useState<number|null>(null);
   const [editingNicId,setEditingNicId]=useState<number|null>(null);
   const [tagName,setTagName]=useState('');
+  const [photos,setPhotos]=useState<DevicePhoto[]>([]);
+  const [photoFile,setPhotoFile]=useState<File|null>(null);
+  const [photoType,setPhotoType]=useState('front');
 
   const load=async()=>{
-    const [d,p,n,t]=await Promise.all([api.get(`/devices/${deviceId}`),api.get(`/devices/${deviceId}/parts`),api.get(`/devices/${deviceId}/interfaces`),api.get(`/devices/${deviceId}/tags`)]);
-    setDevice(d.data); setDeviceForm(d.data); setParts(p.data); setInterfaces(n.data); setTags(t.data);
+    const [d,p,n,t,ph]=await Promise.all([api.get(`/devices/${deviceId}`),api.get(`/devices/${deviceId}/parts`),api.get(`/devices/${deviceId}/interfaces`),api.get(`/devices/${deviceId}/tags`),api.get(`/devices/${deviceId}/photos`)]);
+    setDevice(d.data); setDeviceForm(d.data); setParts(p.data); setInterfaces(n.data); setTags(t.data); setPhotos(ph.data);
   };
   useEffect(()=>{ if(deviceId) load(); },[deviceId]);
 
@@ -35,6 +39,7 @@ export default function DeviceDetailPage() {
   const savePart=async()=>{ editingPartId ? await api.put(`/parts/${editingPartId}`, partForm) : await api.post(`/devices/${deviceId}/parts`, partForm); setEditingPartId(null); setPartForm(emptyPart); load(); };
   const saveNic=async()=>{ editingNicId ? await api.put(`/interfaces/${editingNicId}`, nicForm) : await api.post(`/devices/${deviceId}/interfaces`, nicForm); setEditingNicId(null); setNicForm(emptyNic); load(); };
   const addTag=async()=>{ if(!tagName.trim())return; await api.post(`/devices/${deviceId}/tags`,{tag_name:tagName.trim()}); setTagName(''); load(); };
+  const uploadPhoto=async()=>{ if(!photoFile)return; const fd=new FormData(); fd.append('file',photoFile); fd.append('photo_type',photoType); fd.append('note',''); await api.post(`/devices/${deviceId}/photos`,fd,{headers:{'Content-Type':'multipart/form-data'}}); setPhotoFile(null); load(); };
 
   if(!device||!deviceForm) return <><h2>機器詳細</h2><div className="card">読み込み中...</div></>;
   const icon=getDeviceIcon(device.icon);
@@ -57,6 +62,7 @@ export default function DeviceDetailPage() {
       </div>
       <div className="card"><h3>タグ</h3><div className="tag-list">{tags.map(t=><span className="tag" key={t.id}>{t.tag_name}<button onClick={async()=>{await api.delete(`/tags/${t.id}`);load();}}>×</button></span>)}</div><div className="inline-form"><input placeholder="タグ" value={tagName} onChange={e=>setTagName(e.target.value)}/><button onClick={addTag}>追加</button></div></div>
     </div>
+    <div className="card"><h3>機器写真</h3><div className="inline-form"><select value={photoType} onChange={e=>setPhotoType(e.target.value)}><option value="front">正面</option><option value="back">背面</option><option value="inside">内部</option><option value="other">その他</option></select><input type="file" accept="image/*" onChange={e=>setPhotoFile(e.target.files?.[0]||null)}/><button onClick={uploadPhoto}>写真追加</button></div><div className="photo-grid">{photos.map(p=><div className="photo-card" key={p.id}><img src={p.file_path}/><p>{p.photo_type} / {p.file_name}</p><button className="danger-button" onClick={async()=>{await api.delete(`/device-photos/${p.id}`);load();}}>削除</button></div>)}</div></div>
     <div className="card"><h3>{editingPartId?'パーツ編集':'パーツ登録'}</h3><div className="inline-form"><select value={partForm.part_type} onChange={e=>setPartForm({...partForm,part_type:e.target.value})}><option value="CPU">CPU</option><option value="Memory">メモリ</option><option value="GPU">GPU</option><option value="Motherboard">マザーボード</option><option value="SSD">SSD</option><option value="HDD">HDD</option><option value="PowerSupply">電源</option><option value="Other">その他</option></select><input placeholder="メーカー" value={partForm.vendor} onChange={e=>setPartForm({...partForm,vendor:e.target.value})}/><input placeholder="型番" value={partForm.model} onChange={e=>setPartForm({...partForm,model:e.target.value})}/><input placeholder="仕様" value={partForm.spec} onChange={e=>setPartForm({...partForm,spec:e.target.value})}/><input type="number" min="1" value={partForm.quantity} onChange={e=>setPartForm({...partForm,quantity:Number(e.target.value)})}/><input placeholder="メモ" value={partForm.note} onChange={e=>setPartForm({...partForm,note:e.target.value})}/><button onClick={savePart}>{editingPartId?'保存':'追加'}</button>{editingPartId&&<button className="secondary-button" onClick={()=>{setEditingPartId(null);setPartForm(emptyPart)}}>キャンセル</button>}</div><table className="table"><thead><tr><th>種別</th><th>メーカー</th><th>型番</th><th>仕様</th><th>数量</th><th>メモ</th><th>操作</th></tr></thead><tbody>{parts.map(p=><tr key={p.id}><td>{p.part_type}</td><td>{p.vendor}</td><td>{p.model}</td><td>{p.spec}</td><td>{p.quantity}</td><td>{p.note}</td><td><button className="small-button" onClick={()=>{setEditingPartId(p.id);setPartForm({part_type:p.part_type,vendor:p.vendor||'',model:p.model||'',spec:p.spec||'',quantity:p.quantity||1,note:p.note||''})}}>編集</button><button className="danger-button" onClick={async()=>{await api.delete(`/parts/${p.id}`);load();}}>削除</button></td></tr>)}</tbody></table></div>
     <div className="card"><h3>{editingNicId?'ネットワーク情報編集':'ネットワーク情報登録'}</h3><div className="inline-form"><input placeholder="IF名" value={nicForm.interface_name} onChange={e=>setNicForm({...nicForm,interface_name:e.target.value})}/><input placeholder="IP" value={nicForm.ip_address} onChange={e=>setNicForm({...nicForm,ip_address:e.target.value})}/><input placeholder="MAC" value={nicForm.mac_address} onChange={e=>setNicForm({...nicForm,mac_address:e.target.value})}/><select value={nicForm.network_type} onChange={e=>setNicForm({...nicForm,network_type:e.target.value})}><option value="LAN">LAN</option><option value="Wi-Fi">Wi-Fi</option><option value="Tailscale">Tailscale</option><option value="VPN">VPN</option></select><button onClick={saveNic}>{editingNicId?'保存':'追加'}</button>{editingNicId&&<button className="secondary-button" onClick={()=>{setEditingNicId(null);setNicForm(emptyNic)}}>キャンセル</button>}</div><table className="table"><thead><tr><th>IF名</th><th>IP</th><th>MAC</th><th>種別</th><th>操作</th></tr></thead><tbody>{interfaces.map(n=><tr key={n.id}><td>{n.interface_name}</td><td>{n.ip_address}</td><td>{n.mac_address}</td><td>{n.network_type}</td><td><button className="small-button" onClick={()=>{setEditingNicId(n.id);setNicForm({interface_name:n.interface_name||'',ip_address:n.ip_address||'',mac_address:n.mac_address||'',network_type:n.network_type||'LAN',is_primary:!!n.is_primary,last_seen_at:n.last_seen_at||''})}}>編集</button><button className="danger-button" onClick={async()=>{await api.delete(`/interfaces/${n.id}`);load();}}>削除</button></td></tr>)}</tbody></table></div>
   </>;
