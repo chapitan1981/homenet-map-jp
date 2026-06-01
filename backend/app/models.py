@@ -83,3 +83,10 @@ class DiagramEdge(Base):
     target_node_id = Column(Integer, ForeignKey("diagram_nodes.id"), nullable=False)
     edge_type = Column(String, default="lan")
     label = Column(String, default="")
+
+
+class DeviceTag(Base):
+    __tablename__ = "device_tags"
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    tag_name = Column(String, nullable=False)

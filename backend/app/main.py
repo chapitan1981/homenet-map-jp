@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import Base, engine
-from .routers import rooms, devices, locations, interfaces, parts, diagrams, backup
+from .routers import rooms, devices, locations, interfaces, parts, diagrams, backup, tags
 
 Base.metadata.create_all(bind=engine)
 
@@ -26,3 +26,5 @@ app.include_router(interfaces.router, prefix="/api")
 app.include_router(parts.router, prefix="/api")
 app.include_router(diagrams.router, prefix="/api")
 app.include_router(backup.router, prefix="/api")
+
+app.include_router(tags.router, prefix="/api")

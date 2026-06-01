@@ -1,16 +1,17 @@
 # HomeNet Map JP
 
-日本語対応ホームラボ・デジタルツイン管理システム MVP Ver0.1.2 です。
+日本語対応ホームラボ・デジタルツイン管理システム MVP Ver0.2.0 です。
 
-## Ver0.1.2 追加内容
+## Ver0.2.0 追加内容
 
-- 機器一覧から機器詳細画面へ移動
-- 機器詳細画面に基本情報を表示
-- PCパーツ登録機能を追加
-- CPU / メモリ / GPU / SSD / HDD / 電源などの登録に対応
-- パーツ削除に対応
-- ネットワーク情報登録機能を追加
-- LAN / Wi-Fi / Tailscale / VPN のIP情報登録に対応
+- 部屋編集機能
+- 機器編集機能
+- パーツ編集機能
+- ネットワーク情報編集機能
+- 機器検索機能
+- 機器種別フィルタ
+- アイコン選択機能
+- タグ登録・削除機能
 
 ## 起動方法
 
@@ -19,26 +20,12 @@ cd homenet-map-jp
 docker compose up -d --build
 ```
 
-## アクセス
+## 更新手順
 
-```text
-http://サーバーIP:3880
-```
-
-例：
-
-```text
-http://100.119.72.7:3880
-```
-
-## API確認
-
-```text
-http://サーバーIP:3880/api/health
-```
-
-## 停止
+Windows側で変更をpush後、Ubuntu側で以下を実行します。
 
 ```bash
-docker compose down
+cd ~/homenet-map-jp
+git pull
+docker compose up -d --build
 ```

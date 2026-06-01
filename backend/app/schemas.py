@@ -109,3 +109,16 @@ class DiagramEdge(DiagramEdgeBase):
     diagram_id: int
     class Config:
         from_attributes = True
+
+
+class DeviceTagBase(BaseModel):
+    tag_name: str
+
+class DeviceTagCreate(DeviceTagBase):
+    pass
+
+class DeviceTag(DeviceTagBase):
+    id: int
+    device_id: int
+    class Config:
+        from_attributes = True
