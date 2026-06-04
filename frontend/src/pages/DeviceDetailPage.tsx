@@ -14,7 +14,8 @@ const emptyNic={interface_name:'eth0',ip_address:'',mac_address:'',network_type:
 const emptyField={field_name:'',field_type:'text',field_value:'',sort_order:0,note:''};
 
 export default function DeviceDetailPage(){
- const deviceId=Number(useParams().id); const [mode,setMode]=useState<'view'|'edit'>('view');
+ const deviceId=Number(useParams().id); const openEditOnLoad = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('edit') === '1';
+  const [mode,setMode]=useState<'view'|'edit'>(openEditOnLoad ? 'edit' : 'view');
  const [device,setDevice]=useState<Device|null>(null); const [deviceForm,setDeviceForm]=useState<any>(null);
  const [parts,setParts]=useState<Part[]>([]); const [interfaces,setInterfaces]=useState<Nic[]>([]); const [tags,setTags]=useState<Tag[]>([]); const [photos,setPhotos]=useState<DevicePhoto[]>([]); const [customFields,setCustomFields]=useState<CustomField[]>([]);
  const [partForm,setPartForm]=useState(emptyPart); const [nicForm,setNicForm]=useState(emptyNic); const [fieldForm,setFieldForm]=useState<any>(emptyField);

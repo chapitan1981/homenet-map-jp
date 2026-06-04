@@ -40,7 +40,7 @@ export default function DevicesPage() {
     const res = await api.post('/devices', form);
     setForm(emptyForm);
     await load();
-    location.href = `/devices/${res.data.id}`;
+    location.href = `/devices/${res.data.id}?edit=1`;
   };
 
   const remove = async (id: number) => {
@@ -97,7 +97,7 @@ export default function DevicesPage() {
                 <h3>{icon.mark} {d.name}</h3>
                 <p>{d.device_type} / {d.vendor || '-'} / {d.os_name || '-'}</p>
                 <div className="summary-actions">
-                  <Link className="small-button" to={`/devices/${d.id}`}>編集・写真追加</Link>
+                  <Link className="small-button" to={`/devices/${d.id}?edit=1`}>編集・写真追加</Link>
                   <button className="danger-button" onClick={() => remove(d.id)}>削除</button>
                 </div>
               </div>
