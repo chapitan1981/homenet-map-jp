@@ -1,21 +1,22 @@
 # HomeNet Map JP
 
-日本語対応ホームラボ・デジタルツイン管理システム MVP Ver0.4.0 です。
+日本語対応ホームラボ・デジタルツイン管理システム MVP Ver0.4.1 です。
 
-## Ver0.4.0 追加内容
+## Ver0.4.1 追加内容
 
-- ホームラボ特化テンプレートを追加
-- 機器編集画面からテンプレート適用
-- 新規機器作成時にテンプレート選択
-- テンプレート適用でカスタム項目を自動追加
-- 同名項目の重複追加を回避
-- テンプレート適用時に機器種別・アイコンも自動反映
+- 構成図の接続線をDB保存化
+- 接続線の追加・削除APIを追加
+- 接続線が別端末・別ブラウザでも共有可能
+- バックアップJSONに接続線情報を含める
+- 接続線にメモ欄を追加
+- Ver 0.4.1 表示へ更新
 
-## 追加テンプレート
+## 更新手順
 
-- ホームサーバー / Ubuntu
-- NAS / TrueNAS
-- Windows PC
-- Dockerサービス
-- 仮想マシン / Proxmox VM
-- ネットワーク機器
+```bash
+cd ~/homenet-map-jp
+git fetch origin
+git reset --hard origin/main
+docker compose down
+docker compose up -d --build --force-recreate
+```

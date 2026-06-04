@@ -30,7 +30,7 @@ export default function SettingsPage() {
 
       <div className="card">
         <h3>今後の予定</h3>
-        <p>カスタム項目テンプレート、自動スキャン、Docker/Tailscale連携を追加予定です。</p>
+        <p>接続線DB保存に対応しました。次はドラッグ配置、部屋写真上への配置、自動スキャン、Docker/Tailscale連携を追加予定です。</p>
       </div>
     </>
   );

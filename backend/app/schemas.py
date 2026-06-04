@@ -190,3 +190,20 @@ class DeviceCustomField(DeviceCustomFieldBase):
     device_id: int
     class Config:
         from_attributes = True
+
+
+class DeviceConnectionBase(BaseModel):
+    source_device_id: int
+    target_device_id: int
+    connection_type: str = "LAN"
+    label: str = ""
+    note: str = ""
+    sort_order: int = 0
+
+class DeviceConnectionCreate(DeviceConnectionBase):
+    pass
+
+class DeviceConnection(DeviceConnectionBase):
+    id: int
+    class Config:
+        from_attributes = True

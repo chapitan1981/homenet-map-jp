@@ -141,3 +141,15 @@ class DeviceCustomField(Base):
     sort_order = Column(Integer, default=0)
     note = Column(Text, default="")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class DeviceConnection(Base):
+    __tablename__ = "device_connections"
+    id = Column(Integer, primary_key=True, index=True)
+    source_device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    target_device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    connection_type = Column(String, default="LAN")
+    label = Column(String, default="")
+    note = Column(Text, default="")
+    sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
