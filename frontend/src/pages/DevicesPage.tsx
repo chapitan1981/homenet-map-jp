@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { Device } from '../types/device';
 import { DEVICE_ICONS, getDeviceIcon } from '../types/icon';
+import { DEVICE_TEMPLATES } from '../types/templates';
 
 type DevicePhoto = { id:number; device_id:number; photo_type:string; file_name:string; file_path:string; note:string };
 
@@ -14,6 +15,7 @@ export default function DevicesPage() {
   const [keyword, setKeyword] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [form, setForm] = useState(emptyForm);
+  const [selectedTemplateId,setSelectedTemplateId]=useState('');
 
   const load = async () => {
     const params: any = {};
@@ -34,6 +36,14 @@ export default function DevicesPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  const onTemplateSelect=(id:string)=>{
+    setSelectedTemplateId(id);
+    const t = DEVICE_TEMPLATES.find(x=>x.id===id);
+    if(t){
+      setForm({...form, device_type:t.device_type, icon:t.icon});
+    }
+  };
 
   const submit = async () => {
     if (!form.name) return;
@@ -70,6 +80,10 @@ export default function DevicesPage() {
       <div className="card form">
         <h3>新規機器を追加</h3>
         <p className="photo-hint">追加後、自動で個別機器の編集画面へ移動します。基本情報・写真・パーツ・ネットワーク情報は個別画面でまとめて編集できます。</p>
+        <select value={selectedTemplateId} onChange={e=>onTemplateSelect(e.target.value)}>
+          <option value="">新規作成テンプレート</option>
+          {DEVICE_TEMPLATES.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}
+        </select>
         <input placeholder="機器名" value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
         <select value={form.device_type} onChange={e => setForm({...form, device_type: e.target.value})}>
           <option value="pc">PC</option><option value="server">サーバー</option><option value="nas">NAS</option><option value="network">ネットワーク機器</option><option value="iot">IoT</option><option value="vm">仮想マシン</option><option value="container">Dockerコンテナ</option>

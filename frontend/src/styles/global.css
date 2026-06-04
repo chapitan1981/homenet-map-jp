@@ -528,3 +528,35 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Ver0.4.0 home lab templates */
+.template-card {
+  border-color: #2563eb;
+  background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+}
+
+.template-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.template-mini-card {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  background: #020617;
+}
+
+.template-mini-card p {
+  color: #cbd5e1;
+  font-size: 13px;
+  margin: 6px 0;
+}
+
+.template-mini-card span {
+  color: #93c5fd;
+  font-size: 12px;
+}

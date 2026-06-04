@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
 import { Device } from '../types/device';
 import { DEVICE_ICONS, getDeviceIcon } from '../types/icon';
+import { DEVICE_TEMPLATES } from '../types/templates';
 
 type Part = { id:number; device_id:number; part_type:string; vendor:string; model:string; spec:string; quantity:number; note:string };
 type Nic = { id:number; device_id:number; interface_name:string; ip_address:string; mac_address:string; network_type:string; is_primary:boolean; last_seen_at:string };
@@ -36,6 +37,8 @@ export default function DeviceDetailPage() {
   const [photoType,setPhotoType]=useState('front');
   const [photoUploading,setPhotoUploading]=useState(false);
   const [message,setMessage]=useState('');
+  const [selectedTemplateId,setSelectedTemplateId]=useState('');
+  const [applyingTemplate,setApplyingTemplate]=useState(false);
 
   const load=async()=>{
     const [d,p,n,t,ph,cf]=await Promise.all([
@@ -62,6 +65,36 @@ export default function DeviceDetailPage() {
   const editField=(f:CustomField)=>{ setEditingFieldId(f.id); setFieldForm({field_name:f.field_name||'',field_type:f.field_type||'text',field_value:f.field_value||'',sort_order:f.sort_order||0,note:f.note||''}); };
   const deleteField=async(id:number)=>{ if(!confirm('このカスタム項目を削除しますか？')) return; await api.delete(`/custom-fields/${id}`); await load(); };
   const uploadPhoto=async()=>{ setMessage(''); if(!photoFile){ setMessage('写真ファイルを選択してください。'); return; } try{ setPhotoUploading(true); setMessage('アップロード中...'); const fd=new FormData(); fd.append('file',photoFile); fd.append('photo_type',photoType); fd.append('note',''); await api.post(`/devices/${deviceId}/photos`,fd,{headers:{'Content-Type':'multipart/form-data'}}); setPhotoFile(null); await load(); setMessage('アップロード完了'); }catch(err:any){ setMessage(`アップロード失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`); }finally{ setPhotoUploading(false); } };
+
+  const applyDeviceTemplate=async()=>{
+    setMessage('');
+    const template = DEVICE_TEMPLATES.find(t=>t.id===selectedTemplateId);
+    if(!template){
+      setMessage('テンプレートを選択してください。');
+      return;
+    }
+    if(!confirm(`テンプレート「${template.label}」のカスタム項目を追加しますか？既存項目は残ります。`)) return;
+    try{
+      setApplyingTemplate(true);
+      const existingNames = new Set(customFields.map(f=>f.field_name));
+      let added = 0;
+      for(const field of template.fields){
+        if(existingNames.has(field.field_name)) continue;
+        await api.post(`/devices/${deviceId}/custom-fields`, field);
+        added++;
+      }
+      const nextForm = {...deviceForm, device_type: template.device_type, icon: template.icon};
+      setDeviceForm(nextForm);
+      await api.put(`/devices/${deviceId}`, nextForm);
+      await load();
+      setMessage(`テンプレート「${template.label}」を適用しました。追加項目: ${added}件`);
+    }catch(err:any){
+      setMessage(`テンプレート適用失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`);
+    }finally{
+      setApplyingTemplate(false);
+    }
+  };
+
   const renderCustomValue=(f:CustomField)=> f.field_type==='url'&&f.field_value ? <a className="text-link" href={f.field_value} target="_blank" rel="noreferrer">{f.field_value}</a> : f.field_type==='textarea' ? <span className="multiline-value">{f.field_value}</span> : <span>{f.field_value}</span>;
 
   if(!device||!deviceForm) return <><h2>機器詳細</h2><div className="card">読み込み中...</div></>;
@@ -72,6 +105,22 @@ export default function DeviceDetailPage() {
       <div className="page-title-row"><h2>機器統合編集：{device.name}</h2><div><button onClick={saveDevice}>基本情報を保存して戻る</button><button className="secondary-button" onClick={cancelEdit}>キャンセル</button></div></div>
       <div className="edit-mode-banner">統合編集画面：基本情報・タグ・カスタム項目・写真・パーツ・ネットワーク情報をこの画面で編集できます。</div>
       {message && <div className={message.includes('失敗')||message.includes('選択')||message.includes('入力')?'status-message error':'status-message'}>{message}</div>}
+      
+      <div className="card template-card">
+        <h3>ホームラボ特化テンプレート</h3>
+        <p className="photo-hint">PC / NAS / VM / Docker / ネットワーク機器向けのカスタム項目をまとめて追加します。既存項目は残し、同名項目は重複追加しません。</p>
+        <div className="inline-form">
+          <select value={selectedTemplateId} onChange={e=>setSelectedTemplateId(e.target.value)}>
+            <option value="">テンプレートを選択</option>
+            {DEVICE_TEMPLATES.map(t=><option key={t.id} value={t.id}>{t.label}</option>)}
+          </select>
+          <button onClick={applyDeviceTemplate} disabled={applyingTemplate}>{applyingTemplate?'適用中...':'テンプレート適用'}</button>
+        </div>
+        <div className="template-list">
+          {DEVICE_TEMPLATES.map(t=><div className="template-mini-card" key={t.id}><strong>{t.label}</strong><p>{t.description}</p><span>{t.fields.length}項目</span></div>)}
+        </div>
+      </div>
+
       <div className="grid"><div className="card form"><h3>基本情報</h3><input placeholder="機器名" value={deviceForm.name||''} onChange={e=>setDeviceForm({...deviceForm,name:e.target.value})}/><select value={deviceForm.device_type||'pc'} onChange={e=>setDeviceForm({...deviceForm,device_type:e.target.value})}><option value="pc">PC</option><option value="server">サーバー</option><option value="nas">NAS</option><option value="network">ネットワーク機器</option><option value="iot">IoT</option><option value="vm">仮想マシン</option><option value="container">Dockerコンテナ</option></select><select value={deviceForm.icon||''} onChange={e=>setDeviceForm({...deviceForm,icon:e.target.value})}>{DEVICE_ICONS.map(i=><option key={i.value} value={i.value}>{i.mark} {i.label}</option>)}</select><input placeholder="メーカー" value={deviceForm.vendor||''} onChange={e=>setDeviceForm({...deviceForm,vendor:e.target.value})}/><input placeholder="型番" value={deviceForm.model||''} onChange={e=>setDeviceForm({...deviceForm,model:e.target.value})}/><input placeholder="OS" value={deviceForm.os_name||''} onChange={e=>setDeviceForm({...deviceForm,os_name:e.target.value})}/><textarea placeholder="説明" value={deviceForm.description||''} onChange={e=>setDeviceForm({...deviceForm,description:e.target.value})}/><button onClick={saveDevice}>基本情報を保存</button></div><div className="card"><h3>タグ</h3><div className="tag-list">{tags.map(t=><span className="tag" key={t.id}>{t.tag_name} <button className="tag-delete" onClick={()=>deleteTag(t.id)}>×</button></span>)}</div><div className="inline-form"><input placeholder="タグ" value={tagName} onChange={e=>setTagName(e.target.value)}/><button onClick={addTag}>追加</button></div></div></div>
       <div className="card"><h3>カスタム項目</h3><div className="inline-form"><input placeholder="項目名" value={fieldForm.field_name} onChange={e=>setFieldForm({...fieldForm,field_name:e.target.value})}/><select value={fieldForm.field_type} onChange={e=>setFieldForm({...fieldForm,field_type:e.target.value})}><option value="text">文字列</option><option value="textarea">複数行</option><option value="url">URL</option><option value="date">日付</option><option value="number">数値</option></select>{fieldForm.field_type==='textarea'?<textarea placeholder="値" value={fieldForm.field_value} onChange={e=>setFieldForm({...fieldForm,field_value:e.target.value})}/>:<input type={fieldForm.field_type==='date'?'date':fieldForm.field_type==='number'?'number':'text'} placeholder="値" value={fieldForm.field_value} onChange={e=>setFieldForm({...fieldForm,field_value:e.target.value})}/>}<input type="number" placeholder="並び順" value={fieldForm.sort_order} onChange={e=>setFieldForm({...fieldForm,sort_order:Number(e.target.value)})}/><button onClick={saveField}>{editingFieldId?'保存':'項目追加'}</button>{editingFieldId&&<button className="secondary-button" onClick={()=>{setEditingFieldId(null);setFieldForm(emptyField)}}>キャンセル</button>}</div><table className="table"><thead><tr><th>並び順</th><th>項目名</th><th>タイプ</th><th>値</th><th>操作</th></tr></thead><tbody>{customFields.map(f=><tr key={f.id}><td>{f.sort_order}</td><td>{f.field_name}</td><td>{f.field_type}</td><td>{renderCustomValue(f)}</td><td><button className="small-button" onClick={()=>editField(f)}>編集</button><button className="danger-button" onClick={()=>deleteField(f.id)}>削除</button></td></tr>)}{customFields.length===0&&<tr><td colSpan={4}>カスタム項目未登録</td></tr>}</tbody></table></div>
       <div className="card"><h3>機器写真</h3><div className="inline-form"><select value={photoType} onChange={e=>setPhotoType(e.target.value)}><option value="front">正面</option><option value="back">背面</option><option value="inside">内部</option><option value="other">その他</option></select><input type="file" accept="image/*" onChange={e=>setPhotoFile(e.target.files?.[0]||null)}/><button onClick={uploadPhoto} disabled={photoUploading}>{photoUploading?'アップロード中...':'写真追加'}</button></div><div className="photo-grid">{photos.map(p=><div className="photo-card" key={p.id}><a className="photo-thumb-link" href={p.file_path} target="_blank" rel="noreferrer"><img className="photo-thumb" src={p.file_path}/></a><p>{p.photo_type} / {p.file_name}</p><div className="photo-actions"><a className="photo-open-link" href={p.file_path} target="_blank" rel="noreferrer">開く</a><button className="danger-button" onClick={async()=>{await api.delete(`/device-photos/${p.id}`);load();}}>削除</button></div></div>)}</div></div>
