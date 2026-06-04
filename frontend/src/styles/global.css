@@ -283,3 +283,78 @@ button:disabled {
 /* Ver0.3.5 edit mode */
 .edit-mode-banner { margin: 12px 0 16px; padding: 12px 14px; border-radius: 10px; background: #1e3a8a; color: #dbeafe; border: 1px solid #3b82f6; }
 .page-title-row > div { display: flex; gap: 8px; align-items: center; }
+
+
+/* Ver0.3.6 list thumbnails and simplified management cards */
+.device-card-grid,
+.room-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.device-summary-card,
+.room-summary-card {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 14px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 12px;
+  align-items: stretch;
+}
+
+.summary-photo-link,
+.room-summary-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 105px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #020617;
+  border: 1px solid #475569;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.summary-photo-link img,
+.room-summary-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.summary-no-photo {
+  font-size: 40px;
+}
+
+.summary-body h3 {
+  margin: 0 0 6px;
+}
+
+.summary-body p {
+  margin: 0 0 12px;
+  color: #cbd5e1;
+}
+
+.summary-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.photo-thumb-link {
+  aspect-ratio: 16 / 10;
+}
+
+.photo-card {
+  max-width: 220px;
+}
+
+.photo-grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
+}
