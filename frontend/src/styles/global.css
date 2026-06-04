@@ -278,3 +278,8 @@ button:disabled {
 .table td {
   vertical-align: top;
 }
+
+
+/* Ver0.3.5 edit mode */
+.edit-mode-banner { margin: 12px 0 16px; padding: 12px 14px; border-radius: 10px; background: #1e3a8a; color: #dbeafe; border: 1px solid #3b82f6; }
+.page-title-row > div { display: flex; gap: 8px; align-items: center; }
