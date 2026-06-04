@@ -362,3 +362,55 @@ button:disabled {
 
 /* Ver0.3.7 integrated device edit */
 .tag-delete { margin-left: 6px; padding: 0 5px; border-radius: 999px; border: 1px solid #64748b; background: #1e293b; color: #e5e7eb; cursor: pointer; }
+
+
+/* Ver0.3.8 custom field improvements */
+.preset-field-box {
+  margin: 8px 0 14px;
+  padding: 12px;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  background: #020617;
+}
+
+.preset-field-list {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preset-button {
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #e5e7eb;
+  cursor: pointer;
+}
+
+.preset-button:hover {
+  background: #334155;
+}
+
+.url-button {
+  display: inline-block;
+  max-width: 520px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #1d4ed8;
+  color: #ffffff;
+  text-decoration: none;
+  vertical-align: middle;
+}
+
+.url-button:hover {
+  background: #2563eb;
+}
+
+.multiline-value {
+  white-space: pre-wrap;
+}
