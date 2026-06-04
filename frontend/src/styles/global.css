@@ -237,3 +237,34 @@ button {
   color: #94a3b8;
   margin-top: 8px;
 }
+
+
+/* Ver0.3.3 status and version display */
+.status-message {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #0f766e;
+  color: #ecfeff;
+  border: 1px solid #14b8a6;
+}
+
+.status-message.error {
+  background: #7f1d1d;
+  border-color: #ef4444;
+  color: #fee2e2;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sidebar-version {
+  margin-top: auto;
+  padding: 12px 10px;
+  color: #94a3b8;
+  font-size: 12px;
+  border-top: 1px solid #1e293b;
+  line-height: 1.5;
+}

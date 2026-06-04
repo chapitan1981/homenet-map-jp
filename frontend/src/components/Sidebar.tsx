@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { APP_VERSION, APP_BUILD } from '../version';
 
 export default function Sidebar() {
   return (
@@ -13,6 +14,10 @@ export default function Sidebar() {
         <Link to="/racks">ラックビュー</Link>
         <Link to="/settings">設定</Link>
       </nav>
-    </aside>
+    <div className="sidebar-version">
+          <div>Ver {APP_VERSION}</div>
+          <div>{APP_BUILD}</div>
+        </div>
+      </aside>
   );
 }

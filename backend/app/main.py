@@ -34,3 +34,12 @@ app.include_router(tags.router, prefix="/api")
 
 app.include_router(photos.router, prefix="/api")
 app.include_router(racks.router, prefix="/api")
+
+
+@app.get("/api/version")
+def version():
+    return {
+        "name": "HomeNet Map JP",
+        "version": "0.3.3",
+        "build": "manual-v0.3.3"
+    }
