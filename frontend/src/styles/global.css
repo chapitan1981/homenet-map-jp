@@ -358,3 +358,7 @@ button:disabled {
 .photo-grid {
   grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
 }
+
+
+/* Ver0.3.7 integrated device edit */
+.tag-delete { margin-left: 6px; padding: 0 5px; border-radius: 999px; border: 1px solid #64748b; background: #1e293b; color: #e5e7eb; cursor: pointer; }
