@@ -1,9 +1,28 @@
+import { useEffect, useState } from 'react';
+import { APP_VERSION, APP_BUILD, APP_NAME } from '../version';
+import { api } from '../api/client';
+
 export default function SettingsPage() {
+  const [backendVersion,setBackendVersion]=useState<any>(null);
+
+  useEffect(()=>{
+    api.get('/version').then(res=>setBackendVersion(res.data)).catch(()=>setBackendVersion(null));
+  },[]);
+
   return (
     <>
       <h2>設定</h2>
       <div className="card">
-        <p>MVP Ver0.1では設定画面はプレースホルダーです。</p>
+        <h3>システム情報</h3>
+        <dl className="detail-list">
+          <dt>アプリ名</dt><dd>{APP_NAME}</dd>
+          <dt>Frontend</dt><dd>Ver {APP_VERSION} / {APP_BUILD}</dd>
+          <dt>Backend</dt><dd>{backendVersion ? `Ver ${backendVersion.version} / ${backendVersion.build}` : '取得できません'}</dd>
+        </dl>
+      </div>
+      <div className="card">
+        <h3>今後の予定</h3>
+        <p>カスタム項目テンプレート、自動スキャン、Docker/Tailscale連携を追加予定です。</p>
       </div>
     </>
   );

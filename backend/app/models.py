@@ -129,3 +129,15 @@ class RackItem(Base):
     start_unit = Column(Integer, default=1)
     unit_size = Column(Integer, default=1)
     note = Column(Text, default="")
+
+
+class DeviceCustomField(Base):
+    __tablename__ = "device_custom_fields"
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    field_name = Column(String, nullable=False)
+    field_type = Column(String, default="text")
+    field_value = Column(Text, default="")
+    sort_order = Column(Integer, default=0)
+    note = Column(Text, default="")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

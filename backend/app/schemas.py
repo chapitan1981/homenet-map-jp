@@ -173,3 +173,20 @@ class RackItem(RackItemBase):
     rack_id: int
     class Config:
         from_attributes = True
+
+
+class DeviceCustomFieldBase(BaseModel):
+    field_name: str
+    field_type: str = "text"
+    field_value: str = ""
+    sort_order: int = 0
+    note: str = ""
+
+class DeviceCustomFieldCreate(DeviceCustomFieldBase):
+    pass
+
+class DeviceCustomField(DeviceCustomFieldBase):
+    id: int
+    device_id: int
+    class Config:
+        from_attributes = True

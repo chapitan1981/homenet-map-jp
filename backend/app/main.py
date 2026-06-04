@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .database import Base, engine
-from .routers import rooms, devices, locations, interfaces, parts, diagrams, backup, tags, photos, racks
+from .routers import rooms, devices, locations, interfaces, parts, diagrams, backup, tags, photos, racks, custom_fields
 
 Base.metadata.create_all(bind=engine)
 
@@ -40,6 +40,8 @@ app.include_router(racks.router, prefix="/api")
 def version():
     return {
         "name": "HomeNet Map JP",
-        "version": "0.3.3",
-        "build": "manual-v0.3.3"
+        "version": "0.3.4",
+        "build": "manual-v0.3.4"
     }
+
+app.include_router(custom_fields.router, prefix="/api")

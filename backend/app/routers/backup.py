@@ -25,6 +25,7 @@ def export_backup(db: Session = Depends(get_db)):
         "room_photos": dump(models.RoomPhoto),
         "racks": dump(models.Rack),
         "rack_items": dump(models.RackItem),
+        "device_custom_fields": dump(models.DeviceCustomField),
     }
 
 @router.post("/import")
