@@ -153,3 +153,14 @@ class DeviceConnection(Base):
     note = Column(Text, default="")
     sort_order = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class RoomDevicePlacement(Base):
+    __tablename__ = "room_device_placements"
+    id = Column(Integer, primary_key=True, index=True)
+    room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    x_percent = Column(Integer, default=50)
+    y_percent = Column(Integer, default=50)
+    label = Column(String, default="")
+    note = Column(Text, default="")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

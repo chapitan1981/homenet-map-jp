@@ -207,3 +207,19 @@ class DeviceConnection(DeviceConnectionBase):
     id: int
     class Config:
         from_attributes = True
+
+class RoomDevicePlacementBase(BaseModel):
+    room_id: int
+    device_id: int
+    x_percent: int = 50
+    y_percent: int = 50
+    label: str = ""
+    note: str = ""
+
+class RoomDevicePlacementCreate(RoomDevicePlacementBase):
+    pass
+
+class RoomDevicePlacement(RoomDevicePlacementBase):
+    id: int
+    class Config:
+        from_attributes = True

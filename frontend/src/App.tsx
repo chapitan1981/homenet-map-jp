@@ -5,6 +5,7 @@ import RoomsPage from './pages/RoomsPage';
 import DevicesPage from './pages/DevicesPage';
 import DeviceDetailPage from './pages/DeviceDetailPage';
 import DiagramPage from './pages/DiagramPage';
+import RoomLayoutPage from './pages/RoomLayoutPage';
 import BackupPage from './pages/BackupPage';
 import SettingsPage from './pages/SettingsPage';
 import RackPage from './pages/RackPage';
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/devices" element={<DevicesPage />} />
           <Route path="/devices/:id" element={<DeviceDetailPage />} />
           <Route path="/diagram" element={<DiagramPage />} />
+          <Route path="/room-layout" element={<RoomLayoutPage />} />
           <Route path="/backup" element={<BackupPage />} />
           <Route path="/racks" element={<RackPage />} />
           <Route path="/settings" element={<SettingsPage />} />
