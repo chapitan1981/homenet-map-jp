@@ -567,3 +567,39 @@ button:disabled {
 .room-device-pin { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 2; }
 .pin-icon { width: 42px; height: 42px; border-radius: 999px; background: #1d4ed8; border: 2px solid #bfdbfe; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 8px 20px rgba(0,0,0,.35); }
 .pin-label { max-width: 160px; padding: 4px 8px; border-radius: 8px; background: rgba(15,23,42,.88); border: 1px solid #475569; color: #e5e7eb; font-size: 12px; white-space: nowrap; }
+
+
+/* Ver0.4.3 mouse placement */
+.room-layout-canvas.placement-ready {
+  cursor: crosshair;
+}
+
+.room-device-pin {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.room-device-pin.dragging {
+  cursor: grabbing;
+  z-index: 10;
+}
+
+.room-device-pin.dragging .pin-icon {
+  background: #f59e0b;
+  border-color: #fde68a;
+  transform: scale(1.08);
+}
+
+.room-layout-canvas.placement-ready::after {
+  content: "写真上をクリックして配置";
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  background: rgba(29,78,216,.9);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  pointer-events: none;
+}
