@@ -100,7 +100,7 @@ export default function DevicesPage() {
 
       <div className="device-card-grid">
         {devices.map(d => {
-          const icon = getDeviceIcon(d.icon);
+          const icon = getDeviceIcon(d.icon, d.device_type);
           const photo = photoMap[d.id];
           return (
             <div className="device-summary-card" key={d.id}>

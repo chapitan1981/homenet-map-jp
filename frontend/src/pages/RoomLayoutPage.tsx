@@ -173,7 +173,7 @@ export default function RoomLayoutPage() {
         <img className="room-layout-bg" src={selectedPhoto.file_path}/>
         {placements.map(p=>{
           const d=deviceById(p.device_id);
-          const icon=d?getDeviceIcon(d.icon).mark:'❔';
+          const icon=d?getDeviceIcon(d.icon, d.device_type).mark:'❔';
           return <div 
             className={draggingId===p.id ? 'room-device-pin dragging' : 'room-device-pin'} 
             key={p.id} 

@@ -130,7 +130,7 @@ export default function DiagramPage() {
               <div className="diagram-group" key={type}>
                 <h4>{type}</h4>
                 {list.map(d=>{
-                  const icon = getDeviceIcon(d.icon);
+                  const icon = getDeviceIcon(d.icon, d.device_type);
                   const photo = photoMap[d.id];
                   return <div className="diagram-node" key={d.id}>
                     <div className="diagram-node-thumb">{photo ? <img src={photo.file_path}/> : <span>{icon.mark}</span>}</div>
@@ -168,9 +168,9 @@ export default function DiagramPage() {
             const source = deviceById(e.source_device_id);
             const target = deviceById(e.target_device_id);
             return <div className="flow-row" key={e.id}>
-              <div className="flow-node">{source ? getDeviceIcon(source.icon).mark : '❔'} {deviceName(e.source_device_id)}</div>
+              <div className="flow-node">{source ? getDeviceIcon(source.icon, source.device_type).mark : '❔'} {deviceName(e.source_device_id)}</div>
               <div className="flow-line">─ {e.connection_type}{e.label ? ` / ${e.label}` : ''} →</div>
-              <div className="flow-node">{target ? getDeviceIcon(target.icon).mark : '❔'} {deviceName(e.target_device_id)}</div>
+              <div className="flow-node">{target ? getDeviceIcon(target.icon, target.device_type).mark : '❔'} {deviceName(e.target_device_id)}</div>
             </div>
           })}
           {edges.length===0 && <p className="photo-hint">接続を追加するとここにプレビューされます。</p>}

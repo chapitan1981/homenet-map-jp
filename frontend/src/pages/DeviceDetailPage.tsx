@@ -98,7 +98,7 @@ export default function DeviceDetailPage() {
   const renderCustomValue=(f:CustomField)=> f.field_type==='url'&&f.field_value ? <a className="text-link" href={f.field_value} target="_blank" rel="noreferrer">{f.field_value}</a> : f.field_type==='textarea' ? <span className="multiline-value">{f.field_value}</span> : <span>{f.field_value}</span>;
 
   if(!device||!deviceForm) return <><h2>機器詳細</h2><div className="card">読み込み中...</div></>;
-  const icon=getDeviceIcon(device.icon);
+  const icon=getDeviceIcon(device.icon, device.device_type);
 
   if(mode==='edit'){
     return <>
