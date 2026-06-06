@@ -196,6 +196,10 @@ class DeviceConnectionBase(BaseModel):
     source_device_id: int
     target_device_id: int
     connection_type: str = "LAN"
+    source_port: str = ""
+    target_port: str = ""
+    speed: str = ""
+    cable_type: str = ""
     label: str = ""
     note: str = ""
     sort_order: int = 0

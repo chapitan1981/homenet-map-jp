@@ -647,3 +647,28 @@ button:disabled {
     position: static;
   }
 }
+
+
+/* Ver0.4.6 network connection management */
+.connection-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.connection-form-grid textarea {
+  grid-column: 1 / -1;
+  min-height: 72px;
+}
+
+.port-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #1e293b;
+  border: 1px solid #475569;
+  color: #bfdbfe;
+  font-size: 12px;
+}
