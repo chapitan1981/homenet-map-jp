@@ -603,3 +603,47 @@ button:disabled {
   font-size: 12px;
   pointer-events: none;
 }
+
+
+/* Ver0.4.5 room layout selected placement panel */
+.room-layout-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+.selected-placement-panel {
+  position: sticky;
+  top: 16px;
+}
+
+.room-device-pin.selected .pin-icon {
+  outline: 3px solid #22c55e;
+  outline-offset: 3px;
+}
+
+.room-device-pin.selected .pin-label {
+  border-color: #22c55e;
+}
+
+.placement-move-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.selected-row {
+  background: rgba(34,197,94,.08);
+}
+
+@media (max-width: 1000px) {
+  .room-layout-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .selected-placement-panel {
+    position: static;
+  }
+}
