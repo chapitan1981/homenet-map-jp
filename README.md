@@ -1,20 +1,20 @@
 # HomeNet Map JP
 
-MVP Ver0.6.4 Monitor UI
+MVP Ver0.6.5 Docker Monitor
 
-## Ver0.6.4 追加・修正内容
+## Ver0.6.5 追加内容
 
-- 監視一覧の状態表示不整合を修正
-- 応答時間があるのにオフライン表示になる問題を改善
-- 状態表示の正規化処理を追加
-- 監視名・最終エラー表示を追加
-- 監視画面の色分けを改善
-- 自動更新機能を追加
-  - 30秒
-  - 1分
-  - 5分
-- 正常率表示を追加
+- Dockerコンテナ一覧取得
+- Dockerコンテナ監視を追加
+- 監視方式に `Docker Container` を追加
+- Dockerコンテナカードをクリックして監視設定へ反映
+- Dockerソケットをbackendへ読み取り専用マウント
 
-## 次の予定
+## 注意
 
-- Ver0.6.5 Dockerコンテナ自動取得
+docker-compose.yml の backend に以下を追加しています。
+
+```yaml
+volumes:
+  - /var/run/docker.sock:/var/run/docker.sock:ro
+```

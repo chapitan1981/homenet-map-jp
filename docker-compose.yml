@@ -11,6 +11,8 @@ services:
     environment:
       - TZ=Asia/Tokyo
       - DATABASE_URL=sqlite:///./app/data/homenet.db
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health').read()"]
       interval: 10s

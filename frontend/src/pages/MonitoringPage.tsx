@@ -3,6 +3,8 @@ import { api } from '../api/client';
 import { Device } from '../types/device';
 import { getDeviceIcon } from '../types/icon';
 
+type DockerContainer = { id:string; name:string; image:string; state:string; status:string; ports:any[] };
+
 type Monitor = {
   id:number;
   device_id:number;
@@ -55,6 +57,8 @@ export default function MonitoringPage() {
   const [message,setMessage]=useState('');
   const [checking,setChecking]=useState(false);
   const [autoRefresh,setAutoRefresh]=useState('0');
+  const [dockerContainers,setDockerContainers]=useState<DockerContainer[]>([]);
+  const [dockerMessage,setDockerMessage]=useState('');
 
   const load=async()=>{
     const [d,m]=await Promise.all([api.get('/devices'), api.get('/monitors')]);
@@ -62,7 +66,17 @@ export default function MonitoringPage() {
     setMonitors(m.data);
   };
 
-  useEffect(()=>{load()},[]);
+  const loadDocker=async()=>{
+    setDockerMessage('');
+    try{
+      const res = await api.get('/docker/containers');
+      setDockerContainers(res.data);
+    }catch(err:any){
+      setDockerMessage(`Docker取得失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`);
+    }
+  };
+
+  useEffect(()=>{load(); loadDocker();},[]);
 
   useEffect(()=>{
     const sec = Number(autoRefresh);
@@ -186,7 +200,7 @@ export default function MonitoringPage() {
 
     <div className="card">
       <h3>{editingId?'監視設定を編集':'監視設定を追加'}</h3>
-      <p className="photo-hint">PingはLAN/Tailscale IP、HTTPはWebUI URL、TCPは host:port 形式で指定します。</p>
+      <p className="photo-hint">PingはIP、HTTPはURL、TCPは host:port、Dockerはコンテナ名を指定します。</p>
       <div className="connection-form-grid">
         <select value={form.device_id} onChange={e=>setForm({...form,device_id:e.target.value})} disabled={!!editingId}>
           <option value="">機器を選択</option>
@@ -196,8 +210,9 @@ export default function MonitoringPage() {
           <option value="ping">Ping</option>
           <option value="http">HTTP</option>
           <option value="tcp">TCP Port</option>
+          <option value="docker">Docker Container</option>
         </select>
-        <input placeholder={form.monitor_type==='http'?'http://192.168.0.88:3030':form.monitor_type==='tcp'?'192.168.0.88:22':'192.168.0.88'} value={form.target} onChange={e=>setForm({...form,target:e.target.value})}/>
+        <input placeholder={form.monitor_type==='http'?'http://192.168.0.88:3030':form.monitor_type==='tcp'?'192.168.0.88:22':form.monitor_type==='docker'?'homenet-map-jp-backend':'192.168.0.88'} value={form.target} onChange={e=>setForm({...form,target:e.target.value})}/>
         <input placeholder="表示名 例: LAN Ping / WebUI / SSH" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/>
         <input placeholder="メモ" value={form.note} onChange={e=>setForm({...form,note:e.target.value})}/>
         <label className="inline-check"><input type="checkbox" checked={form.enabled} onChange={e=>setForm({...form,enabled:e.target.checked})}/> 有効</label>
@@ -205,6 +220,25 @@ export default function MonitoringPage() {
       <div className="inline-form">
         <button onClick={saveMonitor}>{editingId?'保存':'追加'}</button>
         {editingId&&<button className="secondary-button" onClick={()=>{setEditingId(null);setForm(emptyForm)}}>キャンセル</button>}
+      </div>
+    </div>
+
+
+    <div className="card">
+      <div className="page-title-row">
+        <h3>Dockerコンテナ一覧</h3>
+        <button className="small-button" onClick={loadDocker}>Docker再取得</button>
+      </div>
+      {dockerMessage&&<div className="status-message error">{dockerMessage}</div>}
+      <p className="photo-hint">Docker監視では「コンテナ名」を監視先に入力します。</p>
+      <div className="docker-container-grid">
+        {dockerContainers.map(c=><button className="docker-container-card" key={c.id} onClick={()=>setForm({...form,monitor_type:'docker',target:c.name,name:c.name})}>
+          <strong>🐳 {c.name}</strong>
+          <span className={c.state==='running'?'docker-running':'docker-stopped'}>{c.state}</span>
+          <small>{c.image}</small>
+          <small>{c.status}</small>
+        </button>)}
+        {dockerContainers.length===0&&<p className="photo-hint">Dockerコンテナ未取得です。Docker再取得を押してください。</p>}
       </div>
     </div>
 

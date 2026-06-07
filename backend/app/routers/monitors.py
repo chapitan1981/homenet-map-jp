@@ -7,6 +7,7 @@ import subprocess
 import time
 import urllib.request
 import socket
+import json
 from ..database import get_db, engine
 from .. import models, schemas
 
@@ -30,6 +31,8 @@ CREATE TABLE IF NOT EXISTS device_monitors (
 )
 """
 
+DOCKER_SOCK = "/var/run/docker.sock"
+
 def init_monitor_table():
     with engine.begin() as conn:
         conn.execute(text(CREATE_MONITOR_TABLE_SQL))
@@ -37,6 +40,50 @@ def init_monitor_table():
 def ensure_monitor_table(db: Session):
     db.execute(text(CREATE_MONITOR_TABLE_SQL))
     db.commit()
+
+def docker_api(path: str):
+    req = f"GET {path} HTTP/1.1\r\nHost: docker\r\nConnection: close\r\n\r\n".encode()
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        s.settimeout(4)
+        s.connect(DOCKER_SOCK)
+        s.sendall(req)
+        chunks = []
+        while True:
+            data = s.recv(65536)
+            if not data:
+                break
+            chunks.append(data)
+        raw = b"".join(chunks)
+        header, _, body = raw.partition(b"\r\n\r\n")
+        status_line = header.splitlines()[0].decode(errors="ignore") if header else ""
+        if " 200 " not in status_line:
+            raise RuntimeError(status_line or "Docker API error")
+        return json.loads(body.decode("utf-8"))
+    finally:
+        s.close()
+
+def list_docker_containers():
+    return docker_api("/containers/json?all=1")
+
+def run_docker(target: str):
+    start = time.time()
+    try:
+        target_lower = target.lower().strip().lstrip("/")
+        for c in list_docker_containers():
+            names = [n.lower().lstrip("/") for n in c.get("Names", [])]
+            cid = c.get("Id", "").lower()
+            image = c.get("Image", "").lower()
+            if target_lower in names or target_lower == cid[:12] or target_lower in image:
+                ms = int((time.time() - start) * 1000)
+                state = c.get("State", "")
+                status = c.get("Status", "")
+                if state == "running":
+                    return ("online", ms, status)
+                return ("offline", ms, status or state)
+        return ("offline", 0, "container not found")
+    except Exception as e:
+        return ("error", 0, str(e))
 
 def run_tcp(target: str):
     start = time.time()
@@ -46,39 +93,26 @@ def run_tcp(target: str):
         host, port_text = target.rsplit(":", 1)
         port = int(port_text)
         with socket.create_connection((host, port), timeout=3):
-            ms = int((time.time() - start) * 1000)
-            return ("online", ms, "")
+            return ("online", int((time.time() - start) * 1000), "")
     except Exception as e:
         return ("offline", 0, str(e))
 
 def run_ping(target: str):
     start = time.time()
     try:
-        result = subprocess.run(
-            ["ping", "-c", "1", "-W", "2", target],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=4
-        )
+        result = subprocess.run(["ping", "-c", "1", "-W", "2", target], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=4)
         ms = int((time.time() - start) * 1000)
         return ("online" if result.returncode == 0 else "offline", ms, "" if result.returncode == 0 else "ping failed")
-    except FileNotFoundError:
-        for port in (80, 443, 22):
-            status, ms, err = run_tcp(f"{target}:{port}")
-            if status == "online":
-                return ("online", ms, f"ping command missing; TCP {port} reachable")
-        return ("error", 0, "ping command missing. Rebuild backend image with iputils-ping.")
     except Exception as e:
         return ("error", 0, str(e))
 
 def run_http(target: str):
     start = time.time()
     try:
-        req = urllib.request.Request(target, headers={"User-Agent":"HomeNetMapJP/0.6.3"})
+        req = urllib.request.Request(target, headers={"User-Agent":"HomeNetMapJP/0.6.5"})
         with urllib.request.urlopen(req, timeout=5) as res:
             ms = int((time.time() - start) * 1000)
-            ok = 200 <= res.status < 400
-            return ("online" if ok else "offline", ms, f"HTTP {res.status}")
+            return ("online" if 200 <= res.status < 400 else "offline", ms, f"HTTP {res.status}")
     except Exception as e:
         return ("error", 0, str(e))
 
@@ -89,7 +123,23 @@ def check_monitor(m: models.DeviceMonitor):
         return run_http(m.target)
     if m.monitor_type == "tcp":
         return run_tcp(m.target)
+    if m.monitor_type == "docker":
+        return run_docker(m.target)
     return run_ping(m.target)
+
+@router.get("/docker/containers")
+def docker_containers():
+    try:
+        return [{
+            "id": c.get("Id", "")[:12],
+            "name": (c.get("Names") or [""])[0].lstrip("/"),
+            "image": c.get("Image", ""),
+            "state": c.get("State", ""),
+            "status": c.get("Status", ""),
+            "ports": c.get("Ports", []),
+        } for c in list_docker_containers()]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
@@ -104,8 +154,8 @@ def list_all_monitors(db: Session = Depends(get_db)):
 @router.post("/devices/{device_id}/monitors", response_model=schemas.DeviceMonitor)
 def create_monitor(device_id: int, payload: schemas.DeviceMonitorCreate, db: Session = Depends(get_db)):
     ensure_monitor_table(db)
-    if payload.monitor_type not in {"ping","http","tcp"}:
-        raise HTTPException(status_code=400, detail="monitor_type must be ping, http, or tcp")
+    if payload.monitor_type not in {"ping","http","tcp","docker"}:
+        raise HTTPException(status_code=400, detail="monitor_type must be ping, http, tcp, or docker")
     if not db.query(models.Device).get(device_id):
         raise HTTPException(status_code=404, detail="Device not found")
     item = models.DeviceMonitor(device_id=device_id, **payload.model_dump())
@@ -117,8 +167,8 @@ def create_monitor(device_id: int, payload: schemas.DeviceMonitorCreate, db: Ses
 @router.put("/monitors/{monitor_id}", response_model=schemas.DeviceMonitor)
 def update_monitor(monitor_id: int, payload: schemas.DeviceMonitorCreate, db: Session = Depends(get_db)):
     ensure_monitor_table(db)
-    if payload.monitor_type not in {"ping","http","tcp"}:
-        raise HTTPException(status_code=400, detail="monitor_type must be ping, http, or tcp")
+    if payload.monitor_type not in {"ping","http","tcp","docker"}:
+        raise HTTPException(status_code=400, detail="monitor_type must be ping, http, tcp, or docker")
     item = db.query(models.DeviceMonitor).get(monitor_id)
     if not item:
         raise HTTPException(status_code=404, detail="Monitor not found")
@@ -145,9 +195,7 @@ def check_one_monitor(monitor_id: int, db: Session = Depends(get_db)):
     if not item:
         raise HTTPException(status_code=404, detail="Monitor not found")
     status, ms, err = check_monitor(item)
-    item.status = status
-    item.response_ms = ms
-    item.last_error = err
+    item.status, item.response_ms, item.last_error = status, ms, err
     item.last_checked_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(item)
@@ -160,9 +208,7 @@ def check_all_monitors(db: Session = Depends(get_db)):
     results = []
     for item in items:
         status, ms, err = check_monitor(item)
-        item.status = status
-        item.response_ms = ms
-        item.last_error = err
+        item.status, item.response_ms, item.last_error = status, ms, err
         item.last_checked_at = datetime.now(timezone.utc)
         results.append({"id": item.id, "status": status, "response_ms": ms})
     db.commit()
