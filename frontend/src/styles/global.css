@@ -935,3 +935,45 @@ button:disabled {
 .error-text {
   color: #fecaca;
 }
+
+
+/* Ver0.6.4 monitoring UI */
+.page-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.monitor-online-card {
+  border-color: #22c55e;
+}
+
+.monitor-offline-card {
+  border-color: #ef4444;
+}
+
+.monitor-error-card {
+  border-color: #f59e0b;
+}
+
+.monitor-table .monitor-row.online {
+  background: rgba(34,197,94,.05);
+}
+
+.monitor-table .monitor-row.offline {
+  background: rgba(239,68,68,.05);
+}
+
+.monitor-table .monitor-row.error {
+  background: rgba(245,158,11,.05);
+}
+
+.monitor-status.error {
+  background: rgba(245,158,11,.15);
+  border-color: #f59e0b;
+  color: #fde68a;
+}
+
+.hint-text {
+  color: #93c5fd;
+}

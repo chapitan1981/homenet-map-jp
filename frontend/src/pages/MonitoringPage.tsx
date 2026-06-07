@@ -4,11 +4,48 @@ import { Device } from '../types/device';
 import { getDeviceIcon } from '../types/icon';
 
 type Monitor = {
-  id:number; device_id:number; monitor_type:string; target:string; name:string; enabled:boolean;
-  status:string; response_ms:number; last_checked_at:string|null; last_error:string; note:string;
+  id:number;
+  device_id:number;
+  monitor_type:string;
+  target:string;
+  name:string;
+  enabled:boolean;
+  status:string;
+  response_ms:number;
+  last_checked_at:string|null;
+  last_error:string;
+  note:string;
 };
 
-const emptyForm = { device_id:'', monitor_type:'ping', target:'', name:'', enabled:true, note:'' };
+const emptyForm = {
+  device_id:'',
+  monitor_type:'ping',
+  target:'',
+  name:'',
+  enabled:true,
+  note:''
+};
+
+const normalizeStatus = (status?: string | null, responseMs?: number) => {
+  const s = (status || 'unknown').toLowerCase();
+  if (s === 'online' || s === 'ok' || s === 'success') return 'online';
+  if (s === 'offline' || s === 'down') return 'offline';
+  if (s === 'error' || s === 'failed') return 'error';
+  if (s === 'disabled') return 'disabled';
+  if ((responseMs || 0) > 0 && (s === 'unknown' || s === '')) return 'online';
+  return 'unknown';
+};
+
+const statusLabel = (status?: string | null, responseMs?: number) => {
+  const s = normalizeStatus(status, responseMs);
+  if(s === 'online') return 'オンライン';
+  if(s === 'offline') return 'オフライン';
+  if(s === 'error') return 'エラー';
+  if(s === 'disabled') return '無効';
+  return '未確認';
+};
+
+const statusClass = (status?: string | null, responseMs?: number) => normalizeStatus(status, responseMs);
 
 export default function MonitoringPage() {
   const [devices,setDevices]=useState<Device[]>([]);
@@ -17,6 +54,7 @@ export default function MonitoringPage() {
   const [editingId,setEditingId]=useState<number|null>(null);
   const [message,setMessage]=useState('');
   const [checking,setChecking]=useState(false);
+  const [autoRefresh,setAutoRefresh]=useState('0');
 
   const load=async()=>{
     const [d,m]=await Promise.all([api.get('/devices'), api.get('/monitors')]);
@@ -25,6 +63,18 @@ export default function MonitoringPage() {
   };
 
   useEffect(()=>{load()},[]);
+
+  useEffect(()=>{
+    const sec = Number(autoRefresh);
+    if(!sec) return;
+    const timer = window.setInterval(async()=>{
+      try{
+        await api.post('/monitors/check-all');
+        await load();
+      }catch{}
+    }, sec * 1000);
+    return ()=>window.clearInterval(timer);
+  },[autoRefresh]);
 
   const deviceName=(id:number)=>devices.find(d=>d.id===id)?.name || `Device ${id}`;
   const deviceIcon=(id:number)=>{
@@ -58,7 +108,14 @@ export default function MonitoringPage() {
 
   const editMonitor=(m:Monitor)=>{
     setEditingId(m.id);
-    setForm({device_id:String(m.device_id), monitor_type:m.monitor_type, target:m.target, name:m.name||'', enabled:m.enabled, note:m.note||''});
+    setForm({
+      device_id:String(m.device_id),
+      monitor_type:m.monitor_type,
+      target:m.target,
+      name:m.name||'',
+      enabled:m.enabled,
+      note:m.note||''
+    });
   };
 
   const deleteMonitor=async(id:number)=>{
@@ -68,8 +125,14 @@ export default function MonitoringPage() {
   };
 
   const checkOne=async(id:number)=>{
-    await api.post(`/monitors/${id}/check`);
-    await load();
+    setMessage('');
+    try{
+      await api.post(`/monitors/${id}/check`);
+      await load();
+      setMessage('監視を実行しました。');
+    }catch(err:any){
+      setMessage(`監視実行失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`);
+    }
   };
 
   const checkAll=async()=>{
@@ -88,34 +151,37 @@ export default function MonitoringPage() {
 
   const summary = useMemo(()=>{
     return {
-      online: monitors.filter(m=>m.status==='online').length,
-      offline: monitors.filter(m=>m.status==='offline').length,
-      error: monitors.filter(m=>m.status==='error').length,
-      unknown: monitors.filter(m=>!m.status || m.status==='unknown').length,
+      online: monitors.filter(m=>statusClass(m.status,m.response_ms)==='online').length,
+      offline: monitors.filter(m=>statusClass(m.status,m.response_ms)==='offline').length,
+      error: monitors.filter(m=>statusClass(m.status,m.response_ms)==='error').length,
+      unknown: monitors.filter(m=>statusClass(m.status,m.response_ms)==='unknown').length,
     };
   },[monitors]);
 
-  const statusLabel=(s:string)=>{
-    if(s==='online') return 'オンライン';
-    if(s==='offline') return 'オフライン';
-    if(s==='error') return 'エラー';
-    if(s==='disabled') return '無効';
-    return '未確認';
-  };
+  const healthRate = monitors.length ? Math.round((summary.online / monitors.length) * 100) : 0;
 
   return <>
     <div className="page-title-row">
       <h2>監視</h2>
-      <button onClick={checkAll} disabled={checking}>{checking?'監視中...':'全監視を実行'}</button>
+      <div className="page-actions">
+        <select value={autoRefresh} onChange={e=>setAutoRefresh(e.target.value)}>
+          <option value="0">自動更新なし</option>
+          <option value="30">30秒ごと</option>
+          <option value="60">1分ごと</option>
+          <option value="300">5分ごと</option>
+        </select>
+        <button onClick={checkAll} disabled={checking}>{checking?'監視中...':'全監視を実行'}</button>
+      </div>
     </div>
 
     {message&&<div className={message.includes('失敗')||message.includes('入力')?'status-message error':'status-message'}>{message}</div>}
 
     <div className="dashboard-stat-grid">
-      <div className="dashboard-stat-card"><span>オンライン</span><strong>{summary.online}</strong></div>
-      <div className="dashboard-stat-card"><span>オフライン</span><strong>{summary.offline}</strong></div>
-      <div className="dashboard-stat-card"><span>エラー</span><strong>{summary.error}</strong></div>
+      <div className="dashboard-stat-card monitor-online-card"><span>オンライン</span><strong>{summary.online}</strong></div>
+      <div className="dashboard-stat-card monitor-offline-card"><span>オフライン</span><strong>{summary.offline}</strong></div>
+      <div className="dashboard-stat-card monitor-error-card"><span>エラー</span><strong>{summary.error}</strong></div>
       <div className="dashboard-stat-card"><span>未確認</span><strong>{summary.unknown}</strong></div>
+      <div className="dashboard-stat-card"><span>正常率</span><strong>{healthRate}%</strong></div>
     </div>
 
     <div className="card">
@@ -128,10 +194,11 @@ export default function MonitoringPage() {
         </select>
         <select value={form.monitor_type} onChange={e=>setForm({...form,monitor_type:e.target.value})}>
           <option value="ping">Ping</option>
-          <option value="http">HTTP</option><option value="tcp">TCP Port</option>
+          <option value="http">HTTP</option>
+          <option value="tcp">TCP Port</option>
         </select>
         <input placeholder={form.monitor_type==='http'?'http://192.168.0.88:3030':form.monitor_type==='tcp'?'192.168.0.88:22':'192.168.0.88'} value={form.target} onChange={e=>setForm({...form,target:e.target.value})}/>
-        <input placeholder="表示名 例: LAN Ping / WebUI" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/>
+        <input placeholder="表示名 例: LAN Ping / WebUI / SSH" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/>
         <input placeholder="メモ" value={form.note} onChange={e=>setForm({...form,note:e.target.value})}/>
         <label className="inline-check"><input type="checkbox" checked={form.enabled} onChange={e=>setForm({...form,enabled:e.target.checked})}/> 有効</label>
       </div>
@@ -143,19 +210,40 @@ export default function MonitoringPage() {
 
     <div className="card">
       <h3>監視一覧</h3>
-      <table className="table">
-        <thead><tr><th>状態</th><th>機器</th><th>種別</th><th>監視先</th><th>応答</th><th>最終確認</th><th>操作</th></tr></thead>
+      <table className="table monitor-table">
+        <thead>
+          <tr>
+            <th>状態</th>
+            <th>機器</th>
+            <th>監視名</th>
+            <th>種別</th>
+            <th>監視先</th>
+            <th>応答</th>
+            <th>最終確認</th>
+            <th>最終エラー</th>
+            <th>操作</th>
+          </tr>
+        </thead>
         <tbody>
-          {monitors.map(m=><tr key={m.id}>
-            <td><span className={`monitor-status ${m.status||'unknown'}`}>{statusLabel(m.status)}</span></td>
-            <td>{deviceIcon(m.device_id)} {deviceName(m.device_id)}<br/><small>{m.name}</small></td>
-            <td>{m.monitor_type}</td>
-            <td>{m.monitor_type==='http'?<a className="text-link" href={m.target} target="_blank" rel="noreferrer">{m.target}</a>:m.target}{m.last_error&&<><br/><small className="error-text">{m.last_error}</small></>}</td>
-            <td>{m.response_ms ? `${m.response_ms} ms` : '-'}</td>
-            <td>{m.last_checked_at ? new Date(m.last_checked_at).toLocaleString('ja-JP') : '-'}</td>
-            <td><button className="small-button" onClick={()=>checkOne(m.id)}>確認</button><button className="small-button" onClick={()=>editMonitor(m)}>編集</button><button className="danger-button" onClick={()=>deleteMonitor(m.id)}>削除</button></td>
-          </tr>)}
-          {monitors.length===0&&<tr><td colSpan={7}>監視設定未登録</td></tr>}
+          {monitors.map(m=>{
+            const cls = statusClass(m.status,m.response_ms);
+            return <tr key={m.id} className={`monitor-row ${cls}`}>
+              <td><span className={`monitor-status ${cls}`}>{statusLabel(m.status,m.response_ms)}</span></td>
+              <td>{deviceIcon(m.device_id)} {deviceName(m.device_id)}</td>
+              <td>{m.name || '-'}</td>
+              <td>{m.monitor_type}</td>
+              <td>{m.monitor_type==='http'?<a className="text-link" href={m.target} target="_blank" rel="noreferrer">{m.target}</a>:m.target}</td>
+              <td>{m.response_ms ? `${m.response_ms} ms` : '-'}</td>
+              <td>{m.last_checked_at ? new Date(m.last_checked_at).toLocaleString('ja-JP') : '-'}</td>
+              <td>{m.last_error ? <small className={cls==='online'?'hint-text':'error-text'}>{m.last_error}</small> : '-'}</td>
+              <td>
+                <button className="small-button" onClick={()=>checkOne(m.id)}>確認</button>
+                <button className="small-button" onClick={()=>editMonitor(m)}>編集</button>
+                <button className="danger-button" onClick={()=>deleteMonitor(m.id)}>削除</button>
+              </td>
+            </tr>
+          })}
+          {monitors.length===0&&<tr><td colSpan={9}>監視設定未登録</td></tr>}
         </tbody>
       </table>
     </div>
