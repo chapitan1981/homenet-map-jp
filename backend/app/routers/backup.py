@@ -55,12 +55,13 @@ def build_backup_json(db: Session):
         ("device_connections", "DeviceConnection"),
         ("room_device_placements", "RoomDevicePlacement"),
         ("device_urls", "DeviceUrl"),
+        ("device_monitors", "DeviceMonitor"),
     ]:
         optional_dump(db, table_name, model_name, tables)
 
     return {
         "app": "HomeNet Map JP",
-        "version": "0.5.1",
+        "version": "0.6.0",
         "created_at": datetime.now().isoformat(),
         "tables": tables,
     }
@@ -81,7 +82,7 @@ def backup_summary(db: Session = Depends(get_db)):
                 uploads_size += p.stat().st_size
 
     return {
-        "version": "0.5.1",
+        "version": "0.6.0",
         "table_counts": {k: len(v) for k, v in tables.items()},
         "uploads_count": uploads_count,
         "uploads_size_bytes": uploads_size,

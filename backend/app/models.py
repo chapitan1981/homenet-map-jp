@@ -179,3 +179,18 @@ class DeviceUrl(Base):
     note = Column(Text, default="")
     sort_order = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class DeviceMonitor(Base):
+    __tablename__ = "device_monitors"
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    monitor_type = Column(String, default="ping")
+    target = Column(String, nullable=False)
+    name = Column(String, default="")
+    enabled = Column(Boolean, default=True)
+    status = Column(String, default="unknown")
+    response_ms = Column(Integer, default=0)
+    last_checked_at = Column(DateTime(timezone=True), nullable=True)
+    last_error = Column(Text, default="")
+    note = Column(Text, default="")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

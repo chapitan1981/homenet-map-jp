@@ -4,6 +4,7 @@ import DashboardPage from './pages/DashboardPage';
 import RoomsPage from './pages/RoomsPage';
 import DevicesPage from './pages/DevicesPage';
 import DeviceDetailPage from './pages/DeviceDetailPage';
+import MonitoringPage from './pages/MonitoringPage';
 import DiagramPage from './pages/DiagramPage';
 import RoomLayoutPage from './pages/RoomLayoutPage';
 import BackupPage from './pages/BackupPage';
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/rooms" element={<RoomsPage />} />
           <Route path="/devices" element={<DevicesPage />} />
           <Route path="/devices/:id" element={<DeviceDetailPage />} />
+          <Route path="/monitoring" element={<MonitoringPage />} />
           <Route path="/diagram" element={<DiagramPage />} />
           <Route path="/room-layout" element={<RoomLayoutPage />} />
           <Route path="/backup" element={<BackupPage />} />

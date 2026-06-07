@@ -243,3 +243,23 @@ class DeviceUrl(DeviceUrlBase):
     device_id: int
     class Config:
         from_attributes = True
+
+class DeviceMonitorBase(BaseModel):
+    monitor_type: str = "ping"
+    target: str
+    name: str = ""
+    enabled: bool = True
+    note: str = ""
+
+class DeviceMonitorCreate(DeviceMonitorBase):
+    pass
+
+class DeviceMonitor(DeviceMonitorBase):
+    id: int
+    device_id: int
+    status: str = "unknown"
+    response_ms: int = 0
+    last_checked_at: Optional[datetime] = None
+    last_error: str = ""
+    class Config:
+        from_attributes = True

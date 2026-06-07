@@ -10,6 +10,7 @@ type RoomPhoto = { id:number; room_id:number; photo_type:string; file_name:strin
 type Edge = { id:number; source_device_id:number; target_device_id:number; label:string; connection_type:string; source_port:string; target_port:string; speed:string; cable_type:string; note:string; sort_order:number };
 type Placement = { id:number; room_id:number; device_id:number; x_percent:number; y_percent:number; label:string; note:string };
 type DeviceUrl = { id:number; device_id:number; name:string; url:string; url_type:string; note:string; sort_order:number };
+type DeviceMonitor = { id:number; device_id:number; status:string; };
 
 export default function DashboardPage() {
   const [devices,setDevices]=useState<Device[]>([]);
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const [edges,setEdges]=useState<Edge[]>([]);
   const [placements,setPlacements]=useState<Placement[]>([]);
   const [deviceUrls,setDeviceUrls]=useState<DeviceUrl[]>([]);
+  const [monitors,setMonitors]=useState<DeviceMonitor[]>([]);
   const [loading,setLoading]=useState(true);
   const [message,setMessage]=useState('');
 
@@ -26,12 +28,13 @@ export default function DashboardPage() {
     setLoading(true);
     setMessage('');
     try{
-      const [d,r,e,p,u]=await Promise.all([
+      const [d,r,e,p,u,mo]=await Promise.all([
         api.get('/devices'),
         api.get('/rooms'),
         api.get('/connections').catch(()=>({data:[]})),
         api.get('/placements').catch(()=>({data:[]})),
-        api.get('/device-urls').catch(()=>({data:[]}))
+        api.get('/device-urls').catch(()=>({data:[]})),
+        api.get('/monitors').catch(()=>({data:[]}))
       ]);
 
       setDevices(d.data);
@@ -39,6 +42,7 @@ export default function DashboardPage() {
       setEdges(e.data);
       setPlacements(p.data);
       setDeviceUrls(u.data);
+      setMonitors(mo.data);
 
       const dpArrays = await Promise.all(d.data.map(async (dev:Device)=>{
         try{ return (await api.get(`/devices/${dev.id}/photos`)).data; }catch{ return []; }
@@ -106,6 +110,7 @@ export default function DashboardPage() {
       <div className="dashboard-stat-card"><span>機器写真</span><strong>{devicePhotos.length}</strong></div>
       <div className="dashboard-stat-card"><span>部屋写真</span><strong>{roomPhotos.length}</strong></div>
       <div className="dashboard-stat-card"><span>登録URL</span><strong>{deviceUrls.length}</strong></div>
+      <Link className="dashboard-stat-card" to="/monitoring"><span>監視オンライン</span><strong>{monitors.filter(m=>m.status==='online').length}/{monitors.length}</strong></Link>
     </div>
 
     <div className="dashboard-grid">

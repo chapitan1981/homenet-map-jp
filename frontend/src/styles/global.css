@@ -895,3 +895,43 @@ button:disabled {
   gap: 8px;
   margin-top: 8px;
 }
+
+/* Ver0.6.0 monitoring */
+.monitor-status {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid #475569;
+  background: #1e293b;
+  color: #e5e7eb;
+  font-size: 12px;
+}
+
+.monitor-status.online {
+  background: rgba(34,197,94,.15);
+  border-color: #22c55e;
+  color: #86efac;
+}
+
+.monitor-status.offline,
+.monitor-status.error {
+  background: rgba(239,68,68,.15);
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
+.monitor-status.disabled,
+.monitor-status.unknown {
+  background: rgba(148,163,184,.12);
+  color: #cbd5e1;
+}
+
+.inline-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.error-text {
+  color: #fecaca;
+}
