@@ -1,18 +1,22 @@
 # HomeNet Map JP
 
-MVP Ver0.4.9
+MVP Ver0.5.0
 
-## Ver0.4.9 追加内容
+## Ver0.5.0 追加内容
 
-- バックアップ強化
-- ZIP Export対応
-- backup.jsonをZIP内に同梱
-- uploads写真ファイルをZIP内に同梱
-- SQLite DBコピーをZIP内に同梱
-- バックアップ概要表示
-- 写真枚数・写真容量・テーブル件数表示
+- ZIP Import / 復元機能
+- 復元前のZIP内容確認
+- 復元前の安全バックアップ作成
+- DBコピー復元
+- uploads写真復元
+- バックアップ画面のUI整理
+- Ver0.5.0としてホームラボ運用版に更新
 
-## 補足
+## 注意
 
-Ver0.4.9では安全性優先のため、ZIP Importはまだ自動化していません。
-Ver0.5.xで確認画面付きZIP Importを追加予定です。
+復元後は反映のため、Ubuntu側で以下を推奨します。
+
+```bash
+cd ~/homenet-map-jp
+docker compose restart backend frontend
+```
