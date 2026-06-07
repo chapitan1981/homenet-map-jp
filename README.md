@@ -1,22 +1,18 @@
 # HomeNet Map JP
 
-MVP Ver0.5.0
+MVP Ver0.5.1
 
-## Ver0.5.0 追加内容
+## Ver0.5.1 修正内容
 
-- ZIP Import / 復元機能
-- 復元前のZIP内容確認
-- 復元前の安全バックアップ作成
-- DBコピー復元
-- uploads写真復元
-- バックアップ画面のUI整理
-- Ver0.5.0としてホームラボ運用版に更新
+- Ver0.5.0安定版の不具合修正・UI微調整
+- バックアップ画面の復元確認チェック追加
+- 誤操作によるZIP復元を防止
+- 復元後の再起動案内を明確化
+- ダッシュボードに安定版通知を追加
+- 復元前ZIP Export推奨の表示を追加
 
-## 注意
+## 反映後の確認
 
-復元後は反映のため、Ubuntu側で以下を推奨します。
-
-```bash
-cd ~/homenet-map-jp
-docker compose restart backend frontend
-```
+- 画面右下または設定画面で Ver0.5.1 表示
+- バックアップ画面でZIP Exportができる
+- ZIP Importでは「内容確認」後に確認チェックが必要

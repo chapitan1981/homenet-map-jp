@@ -28,6 +28,7 @@ export default function BackupPage() {
   const [file,setFile]=useState<File|null>(null);
   const [inspect,setInspect]=useState<InspectResult|null>(null);
   const [restoring,setRestoring]=useState(false);
+  const [restoreConfirmed,setRestoreConfirmed]=useState(false);
 
   const load=async()=>{
     setMessage('');
@@ -55,6 +56,7 @@ export default function BackupPage() {
     try{
       const res = await api.post('/backup/inspect-zip', fd, {headers:{'Content-Type':'multipart/form-data'}});
       setInspect(res.data);
+      setRestoreConfirmed(false);
       setMessage('ZIP内容を確認しました。');
     }catch(err:any){
       setMessage(`確認失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`);
@@ -65,6 +67,7 @@ export default function BackupPage() {
     setMessage('');
     if(!file){ setMessage('ZIPファイルを選択してください。'); return; }
     if(!inspect?.can_restore){ setMessage('先にZIP内容を確認してください。'); return; }
+    if(!restoreConfirmed){ setMessage('復元確認チェックを入れてください。'); return; }
     if(!confirm('現在のDB/写真は安全バックアップ後に復元されます。復元を実行しますか？')) return;
 
     const fd = new FormData();
@@ -111,12 +114,17 @@ export default function BackupPage() {
         <div className="inline-form">
           <input type="file" accept=".zip,application/zip" onChange={e=>{setFile(e.target.files?.[0]||null);setInspect(null);}} />
           <button onClick={inspectZip}>ZIP内容を確認</button>
-          <button className="danger-button" onClick={restoreZip} disabled={restoring || !inspect?.can_restore}>{restoring?'復元中...':'ZIPを復元'}</button>
+          <button className="danger-button" onClick={restoreZip} disabled={restoring || !inspect?.can_restore || !restoreConfirmed}>{restoring?'復元中...':'ZIPを復元'}</button>
         </div>
         {inspect&&<div className="restore-inspect-box">
           <h4>確認結果：{inspect.filename}</h4>
           <p>バックアップJSON: {inspect.has_backup_json ? 'あり' : 'なし'} / DB: {inspect.has_db ? 'あり' : 'なし'} / 写真: {inspect.uploads_count}件</p>
           <p>バックアップ版: {inspect.version || '-'} / 作成日時: {inspect.created_at || '-'}</p>
+          <div className="restore-warning">
+            <strong>復元前確認</strong>
+            <p>復元を実行すると現在のDBと写真は安全バックアップ後に置き換えられます。復元後はUbuntu側で再起動してください。</p>
+            <label><input type="checkbox" checked={restoreConfirmed} onChange={e=>setRestoreConfirmed(e.target.checked)} /> 内容を確認し、復元を実行する</label>
+          </div>
           <table className="table"><thead><tr><th>テーブル</th><th>件数</th></tr></thead><tbody>{Object.entries(inspect.table_counts).map(([k,v])=><tr key={k}><td>{k}</td><td>{v}</td></tr>)}</tbody></table>
         </div>}
       </div>

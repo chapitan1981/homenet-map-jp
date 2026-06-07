@@ -60,7 +60,7 @@ def build_backup_json(db: Session):
 
     return {
         "app": "HomeNet Map JP",
-        "version": "0.5.0",
+        "version": "0.5.1",
         "created_at": datetime.now().isoformat(),
         "tables": tables,
     }
@@ -81,7 +81,7 @@ def backup_summary(db: Session = Depends(get_db)):
                 uploads_size += p.stat().st_size
 
     return {
-        "version": "0.5.0",
+        "version": "0.5.1",
         "table_counts": {k: len(v) for k, v in tables.items()},
         "uploads_count": uploads_count,
         "uploads_size_bytes": uploads_size,
@@ -106,7 +106,7 @@ def export_zip(db: Session = Depends(get_db)):
         "- backup.json: database export\n"
         "- uploads/: uploaded photos\n"
         "- homenet.db: SQLite database copy if available\n\n"
-        "Restore: Ver0.5.0 supports safe ZIP inspection and DB/uploads restore.\n",
+        "Restore: Ver0.5.1 supports safe ZIP inspection and DB/uploads restore.\n",
         encoding="utf-8"
     )
 
@@ -211,7 +211,7 @@ async def restore_zip(file: UploadFile = File(...)):
                 "restored_db": restored_db,
                 "restored_uploads": restored_uploads,
                 "safety_backup": str(safety_dir),
-                "message": "復元しました。反映にはdocker compose restart backend frontend、または再起動を推奨します。"
+                "message": "復元しました。反映には docker compose restart backend frontend を実行してください。復元前データは safety_backup に退避済みです。"
             }
     except zipfile.BadZipFile:
         raise HTTPException(status_code=400, detail="ZIPファイルとして読み込めません")

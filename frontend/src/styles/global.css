@@ -854,3 +854,44 @@ button:disabled {
   margin-top: 0;
   color: #bfdbfe;
 }
+
+
+/* Ver0.5.1 stability UI */
+.stable-notice {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 12px 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #2563eb;
+  border-radius: 12px;
+  background: rgba(29,78,216,.12);
+}
+
+.stable-notice strong {
+  color: #bfdbfe;
+}
+
+.stable-notice span {
+  color: #cbd5e1;
+}
+
+.restore-warning {
+  margin: 12px 0;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #f59e0b;
+  background: rgba(245,158,11,.10);
+}
+
+.restore-warning strong {
+  color: #fde68a;
+}
+
+.restore-warning label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
