@@ -120,7 +120,7 @@ export default function MonitoringPage() {
 
     <div className="card">
       <h3>{editingId?'監視設定を編集':'監視設定を追加'}</h3>
-      <p className="photo-hint">PingはLAN/Tailscale IP、HTTPはWebUIのURLを指定します。</p>
+      <p className="photo-hint">PingはLAN/Tailscale IP、HTTPはWebUI URL、TCPは host:port 形式で指定します。</p>
       <div className="connection-form-grid">
         <select value={form.device_id} onChange={e=>setForm({...form,device_id:e.target.value})} disabled={!!editingId}>
           <option value="">機器を選択</option>
@@ -128,9 +128,9 @@ export default function MonitoringPage() {
         </select>
         <select value={form.monitor_type} onChange={e=>setForm({...form,monitor_type:e.target.value})}>
           <option value="ping">Ping</option>
-          <option value="http">HTTP</option>
+          <option value="http">HTTP</option><option value="tcp">TCP Port</option>
         </select>
-        <input placeholder={form.monitor_type==='http'?'http://192.168.0.88:3030':'192.168.0.88'} value={form.target} onChange={e=>setForm({...form,target:e.target.value})}/>
+        <input placeholder={form.monitor_type==='http'?'http://192.168.0.88:3030':form.monitor_type==='tcp'?'192.168.0.88:22':'192.168.0.88'} value={form.target} onChange={e=>setForm({...form,target:e.target.value})}/>
         <input placeholder="表示名 例: LAN Ping / WebUI" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/>
         <input placeholder="メモ" value={form.note} onChange={e=>setForm({...form,note:e.target.value})}/>
         <label className="inline-check"><input type="checkbox" checked={form.enabled} onChange={e=>setForm({...form,enabled:e.target.checked})}/> 有効</label>

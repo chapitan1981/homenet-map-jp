@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import subprocess
 import time
 import urllib.request
+import socket
 from ..database import get_db, engine
 from .. import models, schemas
 
@@ -30,13 +31,25 @@ CREATE TABLE IF NOT EXISTS device_monitors (
 """
 
 def init_monitor_table():
-    # Runs during application startup for existing SQLite DBs.
     with engine.begin() as conn:
         conn.execute(text(CREATE_MONITOR_TABLE_SQL))
 
 def ensure_monitor_table(db: Session):
     db.execute(text(CREATE_MONITOR_TABLE_SQL))
     db.commit()
+
+def run_tcp(target: str):
+    start = time.time()
+    try:
+        if ":" not in target:
+            return ("error", 0, "TCP target must be host:port")
+        host, port_text = target.rsplit(":", 1)
+        port = int(port_text)
+        with socket.create_connection((host, port), timeout=3):
+            ms = int((time.time() - start) * 1000)
+            return ("online", ms, "")
+    except Exception as e:
+        return ("offline", 0, str(e))
 
 def run_ping(target: str):
     start = time.time()
@@ -49,13 +62,19 @@ def run_ping(target: str):
         )
         ms = int((time.time() - start) * 1000)
         return ("online" if result.returncode == 0 else "offline", ms, "" if result.returncode == 0 else "ping failed")
+    except FileNotFoundError:
+        for port in (80, 443, 22):
+            status, ms, err = run_tcp(f"{target}:{port}")
+            if status == "online":
+                return ("online", ms, f"ping command missing; TCP {port} reachable")
+        return ("error", 0, "ping command missing. Rebuild backend image with iputils-ping.")
     except Exception as e:
         return ("error", 0, str(e))
 
 def run_http(target: str):
     start = time.time()
     try:
-        req = urllib.request.Request(target, headers={"User-Agent":"HomeNetMapJP/0.6.2"})
+        req = urllib.request.Request(target, headers={"User-Agent":"HomeNetMapJP/0.6.3"})
         with urllib.request.urlopen(req, timeout=5) as res:
             ms = int((time.time() - start) * 1000)
             ok = 200 <= res.status < 400
@@ -68,6 +87,8 @@ def check_monitor(m: models.DeviceMonitor):
         return ("disabled", 0, "")
     if m.monitor_type == "http":
         return run_http(m.target)
+    if m.monitor_type == "tcp":
+        return run_tcp(m.target)
     return run_ping(m.target)
 
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
@@ -83,8 +104,8 @@ def list_all_monitors(db: Session = Depends(get_db)):
 @router.post("/devices/{device_id}/monitors", response_model=schemas.DeviceMonitor)
 def create_monitor(device_id: int, payload: schemas.DeviceMonitorCreate, db: Session = Depends(get_db)):
     ensure_monitor_table(db)
-    if payload.monitor_type not in {"ping","http"}:
-        raise HTTPException(status_code=400, detail="monitor_type must be ping or http")
+    if payload.monitor_type not in {"ping","http","tcp"}:
+        raise HTTPException(status_code=400, detail="monitor_type must be ping, http, or tcp")
     if not db.query(models.Device).get(device_id):
         raise HTTPException(status_code=404, detail="Device not found")
     item = models.DeviceMonitor(device_id=device_id, **payload.model_dump())
@@ -96,6 +117,8 @@ def create_monitor(device_id: int, payload: schemas.DeviceMonitorCreate, db: Ses
 @router.put("/monitors/{monitor_id}", response_model=schemas.DeviceMonitor)
 def update_monitor(monitor_id: int, payload: schemas.DeviceMonitorCreate, db: Session = Depends(get_db)):
     ensure_monitor_table(db)
+    if payload.monitor_type not in {"ping","http","tcp"}:
+        raise HTTPException(status_code=400, detail="monitor_type must be ping, http, or tcp")
     item = db.query(models.DeviceMonitor).get(monitor_id)
     if not item:
         raise HTTPException(status_code=404, detail="Monitor not found")

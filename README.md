@@ -1,24 +1,18 @@
 # HomeNet Map JP
 
-MVP Ver0.6.2 Hotfix
+MVP Ver0.6.3 Monitor Hotfix
 
-## Ver0.6.2 修正内容
+## Ver0.6.3 修正内容
 
-- Ver0.6.0 / 0.6.1 の backend 起動失敗を修正
-- `schemas.py` の `datetime` import 不足を確実に修正
-- `Optional` import を確実に追加
-- `device_monitors` テーブルを起動時に自動作成
-- 既存DBでも監視機能が起動できるように改善
-- 監視機能のバックアップ対象化を確認
+- backend Dockerイメージに `iputils-ping` を追加
+- Ping監視の `[Errno 2] No such file or directory: 'ping'` を修正
+- TCPポート監視を追加
+- Pingコマンドが無い場合のフォールバック処理を追加
+- 監視画面で TCP Port を選択可能に変更
 
-## 反映後の確認
+## TCP監視例
 
-```bash
-cd ~/homenet-map-jp
-docker compose down
-docker compose up -d --build --force-recreate
-docker compose ps
-docker compose logs backend --tail=50
-```
-
-backend が healthy になればOKです。
+- SSH: `192.168.0.88:22`
+- SMB: `192.168.0.205:445`
+- Homepage: `192.168.0.88:3030`
+- Proxmox: `192.168.0.151:8006`
