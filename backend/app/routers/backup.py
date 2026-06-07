@@ -1,36 +1,130 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse, FileResponse
 from sqlalchemy.orm import Session
+from pathlib import Path
+from datetime import datetime
+import json
+import zipfile
+import tempfile
 from ..database import get_db
 from .. import models
 
 router = APIRouter(prefix="/backup", tags=["backup"])
 
-@router.get("/export")
-def export_backup(db: Session = Depends(get_db)):
-    def dump(model):
-        rows = db.query(model).all()
-        return [{c.name: getattr(r, c.name) for c in r.__table__.columns} for r in rows]
+DATA_DIR = Path("/app/app/data")
+UPLOADS_DIR = DATA_DIR / "uploads"
+DB_PATH = DATA_DIR / "homenet.db"
 
-    return {
-        "rooms": dump(models.Room),
-        "devices": dump(models.Device),
-        "device_locations": dump(models.DeviceLocation),
-        "network_interfaces": dump(models.NetworkInterface),
-        "device_parts": dump(models.DevicePart),
-        "diagrams": dump(models.Diagram),
-        "diagram_nodes": dump(models.DiagramNode),
-        "diagram_edges": dump(models.DiagramEdge),
-        "device_tags": dump(models.DeviceTag),
-        "device_photos": dump(models.DevicePhoto),
-        "room_photos": dump(models.RoomPhoto),
-        "racks": dump(models.Rack),
-        "rack_items": dump(models.RackItem),
-        "device_custom_fields": dump(models.DeviceCustomField),
-        "device_connections": dump(models.DeviceConnection),
-        "room_device_placements": dump(models.RoomDevicePlacement),
-        "device_urls": dump(models.DeviceUrl),
+def dump_model(db: Session, model):
+    rows = db.query(model).all()
+    result = []
+    for row in rows:
+        item = {}
+        for col in row.__table__.columns:
+            value = getattr(row, col.name)
+            if hasattr(value, "isoformat"):
+                value = value.isoformat()
+            item[col.name] = value
+        result.append(item)
+    return result
+
+def optional_dump(db: Session, table_name: str, model_name: str, tables: dict):
+    model = getattr(models, model_name, None)
+    if model is not None:
+        tables[table_name] = dump_model(db, model)
+
+def build_backup_json(db: Session):
+    tables = {
+        "rooms": dump_model(db, models.Room),
+        "devices": dump_model(db, models.Device),
+        "locations": dump_model(db, models.Location),
+        "interfaces": dump_model(db, models.NetworkInterface),
+        "parts": dump_model(db, models.DevicePart),
+        "diagrams": dump_model(db, models.Diagram),
+        "tags": dump_model(db, models.DeviceTag),
     }
 
-@router.post("/import")
-def import_backup():
-    return {"success": False, "message": "MVP Ver0.1では復元APIは未実装です。"}
+    for table_name, model_name in [
+        ("room_photos", "RoomPhoto"),
+        ("device_photos", "DevicePhoto"),
+        ("racks", "Rack"),
+        ("rack_items", "RackItem"),
+        ("device_custom_fields", "DeviceCustomField"),
+        ("device_connections", "DeviceConnection"),
+        ("room_device_placements", "RoomDevicePlacement"),
+        ("device_urls", "DeviceUrl"),
+    ]:
+        optional_dump(db, table_name, model_name, tables)
+
+    return {
+        "app": "HomeNet Map JP",
+        "version": "0.4.9",
+        "created_at": datetime.now().isoformat(),
+        "tables": tables,
+    }
+
+@router.get("/export")
+def export_json(db: Session = Depends(get_db)):
+    return JSONResponse(build_backup_json(db))
+
+@router.get("/summary")
+def backup_summary(db: Session = Depends(get_db)):
+    tables = build_backup_json(db)["tables"]
+    uploads_count = 0
+    uploads_size = 0
+    if UPLOADS_DIR.exists():
+        for p in UPLOADS_DIR.rglob("*"):
+            if p.is_file():
+                uploads_count += 1
+                uploads_size += p.stat().st_size
+
+    return {
+        "version": "0.4.9",
+        "table_counts": {k: len(v) for k, v in tables.items()},
+        "uploads_count": uploads_count,
+        "uploads_size_bytes": uploads_size,
+        "zip_export": "/api/backup/export-zip",
+        "json_export": "/api/backup/export",
+    }
+
+@router.get("/export-zip")
+def export_zip(db: Session = Depends(get_db)):
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    tmpdir = Path(tempfile.mkdtemp(prefix="homenet_backup_"))
+    zip_path = tmpdir / f"homenet-map-jp-backup-{timestamp}.zip"
+
+    backup_json_path = tmpdir / "backup.json"
+    backup_json_path.write_text(
+        json.dumps(build_backup_json(db), ensure_ascii=False, indent=2),
+        encoding="utf-8"
+    )
+
+    readme_path = tmpdir / "README_restore.txt"
+    readme_path.write_text(
+        "HomeNet Map JP Backup ZIP\n"
+        f"Created: {timestamp}\n\n"
+        "Contents:\n"
+        "- backup.json: database export\n"
+        "- uploads/: uploaded photos\n"
+        "- homenet.db: SQLite database copy if available\n\n"
+        "Restore support will be expanded in Ver0.5.x.\n",
+        encoding="utf-8"
+    )
+
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+        z.write(backup_json_path, "backup.json")
+        z.write(readme_path, "README_restore.txt")
+
+        if DB_PATH.exists():
+            z.write(DB_PATH, "homenet.db")
+
+        if UPLOADS_DIR.exists():
+            for p in UPLOADS_DIR.rglob("*"):
+                if p.is_file():
+                    z.write(p, f"uploads/{p.relative_to(UPLOADS_DIR)}")
+
+    return FileResponse(
+        zip_path,
+        media_type="application/zip",
+        filename=zip_path.name
+    )

@@ -812,3 +812,31 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Ver0.4.9 backup */
+.backup-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.backup-download-card {
+  display: block;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid #334155;
+  background: #020617;
+  color: #e5e7eb;
+  text-decoration: none;
+}
+
+.backup-download-card strong {
+  display: block;
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #bfdbfe;
+}
+
+.backup-download-card span {
+  color: #94a3b8;
+}

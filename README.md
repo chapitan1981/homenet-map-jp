@@ -1,9 +1,18 @@
 # HomeNet Map JP
 
-MVP Ver0.4.8
+MVP Ver0.4.9
 
-- 機器ごとの複数URL管理
-- WebUI / Tailscale / SSH / RDP / SMB / API などの種別対応
-- 機器編集画面からURL追加・編集・削除
-- 機器詳細画面に登録URLカード表示
-- ダッシュボードに主要URLショートカット表示
+## Ver0.4.9 追加内容
+
+- バックアップ強化
+- ZIP Export対応
+- backup.jsonをZIP内に同梱
+- uploads写真ファイルをZIP内に同梱
+- SQLite DBコピーをZIP内に同梱
+- バックアップ概要表示
+- 写真枚数・写真容量・テーブル件数表示
+
+## 補足
+
+Ver0.4.9では安全性優先のため、ZIP Importはまだ自動化していません。
+Ver0.5.xで確認画面付きZIP Importを追加予定です。
