@@ -168,3 +168,14 @@ class RoomDevicePlacement(Base):
     label = Column(String, default="")
     note = Column(Text, default="")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class DeviceUrl(Base):
+    __tablename__ = "device_urls"
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    name = Column(String, nullable=False)
+    url = Column(Text, nullable=False)
+    url_type = Column(String, default="WebUI")
+    note = Column(Text, default="")
+    sort_order = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

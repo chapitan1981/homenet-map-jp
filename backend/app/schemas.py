@@ -227,3 +227,19 @@ class RoomDevicePlacement(RoomDevicePlacementBase):
     id: int
     class Config:
         from_attributes = True
+
+class DeviceUrlBase(BaseModel):
+    name: str
+    url: str
+    url_type: str = "WebUI"
+    note: str = ""
+    sort_order: int = 0
+
+class DeviceUrlCreate(DeviceUrlBase):
+    pass
+
+class DeviceUrl(DeviceUrlBase):
+    id: int
+    device_id: int
+    class Config:
+        from_attributes = True

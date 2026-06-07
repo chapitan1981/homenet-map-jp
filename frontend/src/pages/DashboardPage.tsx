@@ -9,6 +9,7 @@ type DevicePhoto = { id:number; device_id:number; photo_type:string; file_name:s
 type RoomPhoto = { id:number; room_id:number; photo_type:string; file_name:string; file_path:string; note:string };
 type Edge = { id:number; source_device_id:number; target_device_id:number; label:string; connection_type:string; source_port:string; target_port:string; speed:string; cable_type:string; note:string; sort_order:number };
 type Placement = { id:number; room_id:number; device_id:number; x_percent:number; y_percent:number; label:string; note:string };
+type DeviceUrl = { id:number; device_id:number; name:string; url:string; url_type:string; note:string; sort_order:number };
 
 export default function DashboardPage() {
   const [devices,setDevices]=useState<Device[]>([]);
@@ -17,6 +18,7 @@ export default function DashboardPage() {
   const [roomPhotos,setRoomPhotos]=useState<RoomPhoto[]>([]);
   const [edges,setEdges]=useState<Edge[]>([]);
   const [placements,setPlacements]=useState<Placement[]>([]);
+  const [deviceUrls,setDeviceUrls]=useState<DeviceUrl[]>([]);
   const [loading,setLoading]=useState(true);
   const [message,setMessage]=useState('');
 
@@ -24,17 +26,19 @@ export default function DashboardPage() {
     setLoading(true);
     setMessage('');
     try{
-      const [d,r,e,p]=await Promise.all([
+      const [d,r,e,p,u]=await Promise.all([
         api.get('/devices'),
         api.get('/rooms'),
         api.get('/connections').catch(()=>({data:[]})),
-        api.get('/placements').catch(()=>({data:[]}))
+        api.get('/placements').catch(()=>({data:[]})),
+        api.get('/device-urls').catch(()=>({data:[]}))
       ]);
 
       setDevices(d.data);
       setRooms(r.data);
       setEdges(e.data);
       setPlacements(p.data);
+      setDeviceUrls(u.data);
 
       const dpArrays = await Promise.all(d.data.map(async (dev:Device)=>{
         try{ return (await api.get(`/devices/${dev.id}/photos`)).data; }catch{ return []; }
@@ -96,6 +100,7 @@ export default function DashboardPage() {
       <Link className="dashboard-stat-card" to="/room-layout"><span>配置</span><strong>{placements.length}</strong></Link>
       <div className="dashboard-stat-card"><span>機器写真</span><strong>{devicePhotos.length}</strong></div>
       <div className="dashboard-stat-card"><span>部屋写真</span><strong>{roomPhotos.length}</strong></div>
+      <div className="dashboard-stat-card"><span>登録URL</span><strong>{deviceUrls.length}</strong></div>
     </div>
 
     <div className="dashboard-grid">
@@ -134,6 +139,14 @@ export default function DashboardPage() {
           {unplacedDevices.slice(0,12).map(d=><Link className="dashboard-chip" key={d.id} to="/room-layout">{getDeviceIcon(d.icon,d.device_type).mark} {d.name}</Link>)}
           {unplacedDevices.length===0&&<span className="dashboard-ok">すべて配置済み</span>}
         </div>
+      </div>
+    </div>
+
+    <div className="card">
+      <h3>主要URLショートカット</h3>
+      <div className="url-card-list">
+        {deviceUrls.slice(0,12).map(u=><a className="device-url-card" key={u.id} href={u.url} target="_blank" rel="noreferrer"><strong>{u.name}</strong><span>{u.url_type}</span><small>{u.url}</small></a>)}
+        {deviceUrls.length===0&&<p className="photo-hint">URL未登録</p>}
       </div>
     </div>
 

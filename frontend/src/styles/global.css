@@ -771,3 +771,44 @@ button:disabled {
   flex-wrap: wrap;
   gap: 8px;
 }
+
+
+/* Ver0.4.8 URL management */
+.url-card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.device-url-card {
+  display: block;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  background: #020617;
+  color: #e5e7eb;
+  text-decoration: none;
+}
+
+.device-url-card strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.device-url-card span {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #1d4ed8;
+  color: white;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.device-url-card small {
+  display: block;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
