@@ -1028,3 +1028,58 @@ button:disabled {
   border: 1px solid #ef4444;
   color: #fecaca;
 }
+
+
+/* Ver0.7.0 home lab health */
+.health-service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.health-service-card {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  background: #020617;
+}
+
+.health-service-card.ok {
+  border-color: rgba(34,197,94,.6);
+}
+
+.health-service-card.ng {
+  border-color: rgba(239,68,68,.7);
+}
+
+.health-service-card small {
+  display: block;
+  margin-top: 6px;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.health-service-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.health-service-title span {
+  font-size: 12px;
+  color: #bfdbfe;
+  border: 1px solid #334155;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.warning-card {
+  border-color: #f59e0b;
+}
+
+.stopped-card {
+  border-color: #ef4444;
+}

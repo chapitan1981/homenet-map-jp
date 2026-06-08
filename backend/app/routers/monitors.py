@@ -136,6 +136,95 @@ def docker_containers():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+def classify_container(name: str, image: str):
+    text = f"{name} {image}".lower()
+    rules = [
+        ("media", ["jellyfin", "kavita", "plex"]),
+        ("photo", ["immich"]),
+        ("cloud", ["nextcloud", "cloudflared"]),
+        ("dashboard", ["homepage", "portainer", "uptime-kuma", "wud", "glances"]),
+        ("document", ["paperless", "stirling", "ocr"]),
+        ("automation", ["n8n"]),
+        ("database", ["postgres", "mariadb", "mysql", "redis", "valkey"]),
+        ("proxy", ["nginx", "proxy"]),
+        ("app", ["driveshelf", "wallos", "roundcube", "searxng"]),
+    ]
+    for category, words in rules:
+        if any(w in text for w in words):
+            return category
+    return "other"
+
+def container_priority(name: str, image: str):
+    text = f"{name} {image}".lower()
+    important = ["jellyfin", "nextcloud", "immich", "homepage", "portainer", "kavita", "paperless", "stirling", "uptime-kuma", "glances", "n8n"]
+    return 1 if any(w in text for w in important) else 9
+
+@router.get("/docker/health")
+def docker_health():
+    try:
+        containers = list_docker_containers()
+        total = len(containers)
+        running = len([c for c in containers if c.get("state") == "running"])
+        stopped = total - running
+        categories = {}
+        enriched = []
+        for c in containers:
+            cat = classify_container(c.get("name",""), c.get("image",""))
+            categories[cat] = categories.get(cat, 0) + 1
+            enriched.append({
+                **c,
+                "category": cat,
+                "priority": container_priority(c.get("name",""), c.get("image","")),
+                "healthy": c.get("state") == "running",
+            })
+        enriched.sort(key=lambda x: (x["priority"], 0 if x.get("state") == "running" else -1, x.get("name","")))
+        return {
+            "total": total,
+            "running": running,
+            "stopped": stopped,
+            "health_rate": round((running / total) * 100) if total else 0,
+            "categories": categories,
+            "containers": enriched,
+            "stopped_containers": [c for c in enriched if c.get("state") != "running"],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/docker/register-monitors/{device_id}")
+def register_docker_monitors(device_id: int, db: Session = Depends(get_db)):
+    ensure_monitor_table(db)
+    if not db.query(models.Device).get(device_id):
+        raise HTTPException(status_code=404, detail="Device not found")
+    containers = list_docker_containers()
+    created = 0
+    skipped = 0
+    for c in containers:
+        name = c.get("name")
+        if not name:
+            continue
+        exists = db.query(models.DeviceMonitor).filter(
+            models.DeviceMonitor.device_id == device_id,
+            models.DeviceMonitor.monitor_type == "docker",
+            models.DeviceMonitor.target == name
+        ).first()
+        if exists:
+            skipped += 1
+            continue
+        item = models.DeviceMonitor(
+            device_id=device_id,
+            monitor_type="docker",
+            target=name,
+            name=f"Docker: {name}",
+            enabled=True,
+            note=f"Auto registered from Docker container. image={c.get('image','')}"
+        )
+        db.add(item)
+        created += 1
+    db.commit()
+    return {"created": created, "skipped": skipped, "total": len(containers)}
+
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
     ensure_monitor_table(db)

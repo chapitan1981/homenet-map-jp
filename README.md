@@ -1,32 +1,24 @@
 # HomeNet Map JP
 
-MVP Ver0.6.9 Docker SDK Hotfix
+MVP Ver0.7.0 Home Lab Health
 
-## Ver0.6.9 修正内容
+## Ver0.7.0 追加内容
 
-- Docker API手製パーサーを廃止
-- Python Docker SDK を使用する方式へ変更
-- Dockerコンテナ一覧取得の `timed out` を修正
-- Docker監視の安定性を改善
+- ホームラボ健康状態ページを追加
+- Dockerコンテナ稼働率表示
+- 停止中コンテナ警告表示
+- 主要サービス自動分類
+- カテゴリ別コンテナ集計
+- 全Dockerコンテナ一覧
+- Docker監視の一括登録
+- ダッシュボードから健康状態ページへリンク追加
 
-## 重要
+## 主要サービス自動分類例
 
-backend/requirements.txt に以下を追加しています。
-
-```txt
-docker==7.1.0
-```
-
-反映時は backend の再ビルドが必要です。
-
-```bash
-docker compose down
-docker compose build --no-cache backend
-docker compose up -d --build --force-recreate
-```
-
-## 反映後の確認
-
-```bash
-curl -s http://127.0.0.1:3881/api/docker/containers | jq .
-```
+- Jellyfin / Kavita: メディア
+- Nextcloud: クラウド
+- Immich: 写真
+- Homepage / Portainer / Uptime Kuma / WUD / Glances: 管理
+- Paperless / Stirling PDF: 文書
+- n8n: 自動化
+- PostgreSQL / MariaDB / Redis: DB/キャッシュ

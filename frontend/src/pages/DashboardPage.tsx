@@ -153,6 +153,15 @@ export default function DashboardPage() {
     </div>
 
     <div className="card">
+      <h3>ホームラボ健康状態</h3>
+      <p className="photo-hint">Dockerコンテナの稼働率、主要サービス、停止中コンテナを確認できます。</p>
+      <div className="dashboard-action-row">
+        <Link className="small-button" to="/health">健康状態を開く</Link>
+        <Link className="small-button" to="/monitoring">監視を開く</Link>
+      </div>
+    </div>
+
+    <div className="card">
       <h3>主要URLショートカット</h3>
       <div className="url-card-list">
         {deviceUrls.slice(0,12).map(u=><a className="device-url-card" key={u.id} href={u.url} target="_blank" rel="noreferrer"><strong>{u.name}</strong><span>{u.url_type}</span><small>{u.url}</small></a>)}
