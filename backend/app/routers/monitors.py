@@ -8,6 +8,7 @@ import time
 import urllib.request
 import socket
 import json
+import re
 from ..database import get_db, engine
 from .. import models, schemas
 
@@ -61,43 +62,70 @@ def decode_chunked(body: bytes) -> bytes:
     return bytes(output)
 
 def docker_api(path: str):
-    req = f"GET {path} HTTP/1.1\\r\\nHost: docker\\r\\nAccept: application/json\\r\\nConnection: close\\r\\n\\r\\n".encode()
+    req = f"GET {path} HTTP/1.0\\r\\nHost: docker\\r\\nAccept: application/json\\r\\n\\r\\n".encode()
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     try:
-        s.settimeout(5)
+        s.settimeout(3)
         s.connect(DOCKER_SOCK)
         s.sendall(req)
-        chunks = []
-        while True:
-            data = s.recv(65536)
-            if not data:
+
+        raw = b""
+        while b"\\r\\n\\r\\n" not in raw:
+            part = s.recv(4096)
+            if not part:
                 break
-            chunks.append(data)
-        raw = b"".join(chunks)
+            raw += part
+
+        header, sep, body = raw.partition(b"\\r\\n\\r\\n")
+        if not sep:
+            raise RuntimeError("Invalid Docker API response")
+
+        header_text = header.decode("iso-8859-1", errors="ignore")
+        status_line = header_text.splitlines()[0] if header_text else ""
+        if " 200 " not in status_line:
+            detail = body[:300].decode("utf-8", errors="ignore")
+            raise RuntimeError(f"{status_line} {detail}".strip())
+
+        lower_header = header_text.lower()
+        content_length = None
+        m = re.search(r"content-length:\\s*(\\d+)", lower_header)
+        if m:
+            content_length = int(m.group(1))
+
+        if content_length is not None:
+            while len(body) < content_length:
+                chunk = s.recv(min(65536, content_length - len(body)))
+                if not chunk:
+                    break
+                body += chunk
+            body = body[:content_length]
+        else:
+            s.settimeout(0.5)
+            while True:
+                try:
+                    chunk = s.recv(65536)
+                    if not chunk:
+                        break
+                    body += chunk
+                except socket.timeout:
+                    break
+
+        if "transfer-encoding: chunked" in lower_header:
+            body = decode_chunked(body)
+
+        body_text = body.decode("utf-8", errors="replace").strip()
+        if not body_text:
+            return []
+
+        try:
+            return json.loads(body_text)
+        except json.JSONDecodeError as e:
+            raise RuntimeError(f"Docker JSON parse failed: {e}; body head={body_text[:160]!r}")
     finally:
-        s.close()
-
-    header, sep, body = raw.partition(b"\\r\\n\\r\\n")
-    if not sep:
-        raise RuntimeError("Invalid Docker API response")
-
-    header_text = header.decode("iso-8859-1", errors="ignore")
-    status_line = header_text.splitlines()[0] if header_text else ""
-    if " 200 " not in status_line:
-        detail = body[:300].decode("utf-8", errors="ignore")
-        raise RuntimeError(f"{status_line} {detail}".strip())
-
-    if "transfer-encoding: chunked" in header_text.lower():
-        body = decode_chunked(body)
-
-    body_text = body.decode("utf-8", errors="replace").strip()
-    if not body_text:
-        return []
-
-    try:
-        return json.loads(body_text)
-    except json.JSONDecodeError as e:
-        raise RuntimeError(f"Docker JSON parse failed: {e}; body head={body_text[:120]!r}")
+        try:
+            s.close()
+        except Exception:
+            pass
 
 def list_docker_containers():
     return docker_api("/containers/json?all=1")
@@ -145,7 +173,7 @@ def run_ping(target: str):
 def run_http(target: str):
     start = time.time()
     try:
-        req = urllib.request.Request(target, headers={"User-Agent":"HomeNetMapJP/0.6.7"})
+        req = urllib.request.Request(target, headers={"User-Agent":"HomeNetMapJP/0.6.8"})
         with urllib.request.urlopen(req, timeout=5) as res:
             ms = int((time.time() - start) * 1000)
             return ("online" if 200 <= res.status < 400 else "offline", ms, f"HTTP {res.status}")
