@@ -3,3 +3,4 @@ uvicorn[standard]
 sqlalchemy
 pydantic
 python-multipart
+docker==7.1.0

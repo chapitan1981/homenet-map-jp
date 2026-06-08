@@ -40,8 +40,8 @@ app.include_router(racks.router, prefix="/api")
 def version():
     return {
         "name": "HomeNet Map JP",
-        "version": "0.6.8",
-        "build": "manual-v0.6.8-docker-timeout-hotfix"
+        "version": "0.6.9",
+        "build": "manual-v0.6.9-docker-sdk-hotfix"
     }
 
 app.include_router(custom_fields.router, prefix="/api")

@@ -7,8 +7,6 @@ import subprocess
 import time
 import urllib.request
 import socket
-import json
-import re
 from ..database import get_db, engine
 from .. import models, schemas
 
@@ -32,8 +30,6 @@ CREATE TABLE IF NOT EXISTS device_monitors (
 )
 """
 
-DOCKER_SOCK = "/var/run/docker.sock"
-
 def init_monitor_table():
     with engine.begin() as conn:
         conn.execute(text(CREATE_MONITOR_TABLE_SQL))
@@ -42,106 +38,48 @@ def ensure_monitor_table(db: Session):
     db.execute(text(CREATE_MONITOR_TABLE_SQL))
     db.commit()
 
-def decode_chunked(body: bytes) -> bytes:
-    output = bytearray()
-    idx = 0
-    while idx < len(body):
-        line_end = body.find(b"\\r\\n", idx)
-        if line_end == -1:
-            break
-        size_line = body[idx:line_end].split(b";", 1)[0].strip()
-        try:
-            size = int(size_line, 16)
-        except ValueError:
-            return body
-        idx = line_end + 2
-        if size == 0:
-            break
-        output.extend(body[idx:idx+size])
-        idx += size + 2
-    return bytes(output)
-
-def docker_api(path: str):
-    req = f"GET {path} HTTP/1.0\\r\\nHost: docker\\r\\nAccept: application/json\\r\\n\\r\\n".encode()
-    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+def docker_client():
     try:
-        s.settimeout(3)
-        s.connect(DOCKER_SOCK)
-        s.sendall(req)
-
-        raw = b""
-        while b"\\r\\n\\r\\n" not in raw:
-            part = s.recv(4096)
-            if not part:
-                break
-            raw += part
-
-        header, sep, body = raw.partition(b"\\r\\n\\r\\n")
-        if not sep:
-            raise RuntimeError("Invalid Docker API response")
-
-        header_text = header.decode("iso-8859-1", errors="ignore")
-        status_line = header_text.splitlines()[0] if header_text else ""
-        if " 200 " not in status_line:
-            detail = body[:300].decode("utf-8", errors="ignore")
-            raise RuntimeError(f"{status_line} {detail}".strip())
-
-        lower_header = header_text.lower()
-        content_length = None
-        m = re.search(r"content-length:\\s*(\\d+)", lower_header)
-        if m:
-            content_length = int(m.group(1))
-
-        if content_length is not None:
-            while len(body) < content_length:
-                chunk = s.recv(min(65536, content_length - len(body)))
-                if not chunk:
-                    break
-                body += chunk
-            body = body[:content_length]
-        else:
-            s.settimeout(0.5)
-            while True:
-                try:
-                    chunk = s.recv(65536)
-                    if not chunk:
-                        break
-                    body += chunk
-                except socket.timeout:
-                    break
-
-        if "transfer-encoding: chunked" in lower_header:
-            body = decode_chunked(body)
-
-        body_text = body.decode("utf-8", errors="replace").strip()
-        if not body_text:
-            return []
-
-        try:
-            return json.loads(body_text)
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Docker JSON parse failed: {e}; body head={body_text[:160]!r}")
-    finally:
-        try:
-            s.close()
-        except Exception:
-            pass
+        import docker
+    except Exception as e:
+        raise RuntimeError(f"Docker SDK is not installed: {e}")
+    try:
+        client = docker.DockerClient(base_url="unix://var/run/docker.sock", timeout=4)
+        client.ping()
+        return client
+    except Exception as e:
+        raise RuntimeError(f"Docker socket access failed: {e}")
 
 def list_docker_containers():
-    return docker_api("/containers/json?all=1")
+    client = docker_client()
+    result = []
+    for c in client.containers.list(all=True):
+        attrs = c.attrs or {}
+        state_obj = attrs.get("State", {}) or {}
+        state = state_obj.get("Status") or c.status or "unknown"
+        ports = attrs.get("NetworkSettings", {}).get("Ports", {}) or {}
+        result.append({
+            "id": c.short_id,
+            "name": c.name,
+            "image": ", ".join(c.image.tags) if c.image and c.image.tags else attrs.get("Config", {}).get("Image", ""),
+            "state": state,
+            "status": c.status or state,
+            "ports": ports,
+        })
+    return result
 
 def run_docker(target: str):
     start = time.time()
     try:
         target_lower = target.lower().strip().lstrip("/")
         for c in list_docker_containers():
-            names = [n.lower().lstrip("/") for n in c.get("Names", [])]
-            cid = c.get("Id", "").lower()
-            image = c.get("Image", "").lower()
-            if target_lower in names or target_lower == cid[:12] or target_lower in image:
+            name = (c.get("name") or "").lower()
+            cid = (c.get("id") or "").lower()
+            image = (c.get("image") or "").lower()
+            if target_lower == name or target_lower == cid or target_lower in image:
                 ms = int((time.time() - start) * 1000)
-                state = c.get("State", "")
-                status = c.get("Status", "")
+                state = c.get("state", "")
+                status = c.get("status", "")
                 if state == "running":
                     return ("online", ms, status)
                 return ("offline", ms, status or state)
@@ -173,7 +111,7 @@ def run_ping(target: str):
 def run_http(target: str):
     start = time.time()
     try:
-        req = urllib.request.Request(target, headers={"User-Agent":"HomeNetMapJP/0.6.8"})
+        req = urllib.request.Request(target, headers={"User-Agent":"HomeNetMapJP/0.6.9"})
         with urllib.request.urlopen(req, timeout=5) as res:
             ms = int((time.time() - start) * 1000)
             return ("online" if 200 <= res.status < 400 else "offline", ms, f"HTTP {res.status}")
@@ -194,14 +132,7 @@ def check_monitor(m: models.DeviceMonitor):
 @router.get("/docker/containers")
 def docker_containers():
     try:
-        return [{
-            "id": c.get("Id", "")[:12],
-            "name": (c.get("Names") or [""])[0].lstrip("/"),
-            "image": c.get("Image", ""),
-            "state": c.get("State", ""),
-            "status": c.get("Status", ""),
-            "ports": c.get("Ports", []),
-        } for c in list_docker_containers()]
+        return list_docker_containers()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
