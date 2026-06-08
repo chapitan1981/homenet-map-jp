@@ -41,11 +41,30 @@ def ensure_monitor_table(db: Session):
     db.execute(text(CREATE_MONITOR_TABLE_SQL))
     db.commit()
 
+def decode_chunked(body: bytes) -> bytes:
+    output = bytearray()
+    idx = 0
+    while idx < len(body):
+        line_end = body.find(b"\\r\\n", idx)
+        if line_end == -1:
+            break
+        size_line = body[idx:line_end].split(b";", 1)[0].strip()
+        try:
+            size = int(size_line, 16)
+        except ValueError:
+            return body
+        idx = line_end + 2
+        if size == 0:
+            break
+        output.extend(body[idx:idx+size])
+        idx += size + 2
+    return bytes(output)
+
 def docker_api(path: str):
-    req = f"GET {path} HTTP/1.1\r\nHost: docker\r\nConnection: close\r\n\r\n".encode()
+    req = f"GET {path} HTTP/1.1\\r\\nHost: docker\\r\\nAccept: application/json\\r\\nConnection: close\\r\\n\\r\\n".encode()
     s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     try:
-        s.settimeout(4)
+        s.settimeout(5)
         s.connect(DOCKER_SOCK)
         s.sendall(req)
         chunks = []
@@ -55,13 +74,30 @@ def docker_api(path: str):
                 break
             chunks.append(data)
         raw = b"".join(chunks)
-        header, _, body = raw.partition(b"\r\n\r\n")
-        status_line = header.splitlines()[0].decode(errors="ignore") if header else ""
-        if " 200 " not in status_line:
-            raise RuntimeError(status_line or "Docker API error")
-        return json.loads(body.decode("utf-8"))
     finally:
         s.close()
+
+    header, sep, body = raw.partition(b"\\r\\n\\r\\n")
+    if not sep:
+        raise RuntimeError("Invalid Docker API response")
+
+    header_text = header.decode("iso-8859-1", errors="ignore")
+    status_line = header_text.splitlines()[0] if header_text else ""
+    if " 200 " not in status_line:
+        detail = body[:300].decode("utf-8", errors="ignore")
+        raise RuntimeError(f"{status_line} {detail}".strip())
+
+    if "transfer-encoding: chunked" in header_text.lower():
+        body = decode_chunked(body)
+
+    body_text = body.decode("utf-8", errors="replace").strip()
+    if not body_text:
+        return []
+
+    try:
+        return json.loads(body_text)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"Docker JSON parse failed: {e}; body head={body_text[:120]!r}")
 
 def list_docker_containers():
     return docker_api("/containers/json?all=1")
@@ -109,7 +145,7 @@ def run_ping(target: str):
 def run_http(target: str):
     start = time.time()
     try:
-        req = urllib.request.Request(target, headers={"User-Agent":"HomeNetMapJP/0.6.5"})
+        req = urllib.request.Request(target, headers={"User-Agent":"HomeNetMapJP/0.6.7"})
         with urllib.request.urlopen(req, timeout=5) as res:
             ms = int((time.time() - start) * 1000)
             return ("online" if 200 <= res.status < 400 else "offline", ms, f"HTTP {res.status}")

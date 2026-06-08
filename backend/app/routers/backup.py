@@ -61,7 +61,7 @@ def build_backup_json(db: Session):
 
     return {
         "app": "HomeNet Map JP",
-        "version": "0.6.6",
+        "version": "0.6.7",
         "created_at": datetime.now().isoformat(),
         "tables": tables,
     }
@@ -82,7 +82,7 @@ def backup_summary(db: Session = Depends(get_db)):
                 uploads_size += p.stat().st_size
 
     return {
-        "version": "0.6.6",
+        "version": "0.6.7",
         "table_counts": {k: len(v) for k, v in tables.items()},
         "uploads_count": uploads_count,
         "uploads_size_bytes": uploads_size,
