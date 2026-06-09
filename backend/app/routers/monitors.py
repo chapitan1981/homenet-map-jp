@@ -466,6 +466,149 @@ def homelab_discovery():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+
+def _tcp_check(host: str, port: int, timeout: float = 1.5):
+    import socket
+    start = time.time()
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return {"status": "online", "response_ms": int((time.time() - start) * 1000), "error": ""}
+    except Exception as e:
+        return {"status": "offline", "response_ms": 0, "error": str(e)}
+
+def _ping_check(host: str):
+    status, ms, err = run_ping(host)
+    return {"status": status, "response_ms": ms, "error": err}
+
+def _disk_info():
+    import shutil
+    import os
+    targets = ["/", "/app/app/data"]
+    result = []
+    for t in targets:
+        try:
+            du = shutil.disk_usage(t)
+            result.append({
+                "path": t,
+                "total_gb": round(du.total / (1024**3), 1),
+                "used_gb": round(du.used / (1024**3), 1),
+                "free_gb": round(du.free / (1024**3), 1),
+                "used_percent": round((du.used / du.total) * 100) if du.total else 0,
+                "status": "warning" if du.total and (du.used / du.total) >= 0.85 else "ok"
+            })
+        except Exception as e:
+            result.append({"path": t, "status": "error", "error": str(e)})
+    return result
+
+def _tailscale_info():
+    import subprocess, json
+    try:
+        r = subprocess.run(["tailscale", "status", "--json"], capture_output=True, text=True, timeout=3)
+        if r.returncode != 0:
+            return {"available": False, "status": "unknown", "error": r.stderr.strip() or "tailscale command failed"}
+        data = json.loads(r.stdout)
+        self_node = data.get("Self", {})
+        return {
+            "available": True,
+            "status": "online" if self_node.get("Online") else "offline",
+            "hostname": self_node.get("HostName", ""),
+            "tailscale_ips": self_node.get("TailscaleIPs", []),
+            "exit_node": bool(self_node.get("ExitNode", False)),
+            "subnet_routes": self_node.get("AllowedIPs", []),
+        }
+    except FileNotFoundError:
+        return {"available": False, "status": "not_installed", "error": "tailscale command not found in container"}
+    except Exception as e:
+        return {"available": False, "status": "error", "error": str(e)}
+
+@router.get("/homelab/stable-summary")
+def homelab_stable_summary():
+    try:
+        containers = list_docker_containers()
+        running = len([c for c in containers if c.get("state") == "running"])
+        total = len(containers)
+        stopped = total - running
+        stopped_items = [c for c in containers if c.get("state") != "running"]
+
+        truenas_ip = "192.168.0.205"
+        proxmox_ip = "192.168.0.151"
+        ubuntu_ip = "192.168.0.88"
+
+        checks = {
+            "ubuntu": {
+                "name": "Ubuntu Docker Host",
+                "ip": ubuntu_ip,
+                "ping": _ping_check(ubuntu_ip),
+                "ssh": _tcp_check(ubuntu_ip, 22),
+            },
+            "truenas": {
+                "name": "TrueNAS",
+                "ip": truenas_ip,
+                "ping": _ping_check(truenas_ip),
+                "smb": _tcp_check(truenas_ip, 445),
+                "webui_http": _tcp_check(truenas_ip, 80),
+                "webui_https": _tcp_check(truenas_ip, 443),
+            },
+            "proxmox": {
+                "name": "Proxmox",
+                "ip": proxmox_ip,
+                "ping": _ping_check(proxmox_ip),
+                "webui": _tcp_check(proxmox_ip, 8006),
+            }
+        }
+
+        service_keywords = ["jellyfin", "immich", "nextcloud", "homepage", "portainer", "kavita", "paperless", "stirling", "uptime-kuma", "glances", "n8n", "wud"]
+        services = []
+        for c in containers:
+            text = f"{c.get('name','')} {c.get('image','')}".lower()
+            if any(k in text for k in service_keywords):
+                try:
+                    label, category = _hm_kind(c.get("name",""), c.get("image",""))
+                    url = _hm_url(c.get("name",""), c.get("image",""), c.get("ports"))
+                except Exception:
+                    label, category, url = c.get("name",""), "other", ""
+                services.append({
+                    **c,
+                    "label": label,
+                    "category": category,
+                    "url": url,
+                    "healthy": c.get("state") == "running"
+                })
+
+        warnings = []
+        if stopped:
+            warnings.append({"level": "warning", "message": f"停止中コンテナ {stopped} 件"})
+        for d in _disk_info():
+            if d.get("status") == "warning":
+                warnings.append({"level": "warning", "message": f"ディスク使用率 {d.get('path')}: {d.get('used_percent')}%"})
+        if checks["truenas"]["smb"]["status"] != "online":
+            warnings.append({"level": "warning", "message": "TrueNAS SMB(445)に接続できません"})
+        if checks["proxmox"]["webui"]["status"] != "online":
+            warnings.append({"level": "warning", "message": "Proxmox WebUI(8006)に接続できません"})
+
+        overall = "ok" if not warnings else "warning"
+        if running == 0 and total > 0:
+            overall = "critical"
+
+        return {
+            "overall": overall,
+            "warnings": warnings,
+            "docker": {
+                "total": total,
+                "running": running,
+                "stopped": stopped,
+                "health_rate": round((running / total) * 100) if total else 0,
+                "stopped_items": stopped_items,
+            },
+            "checks": checks,
+            "disks": _disk_info(),
+            "tailscale": _tailscale_info(),
+            "services": services,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
     ensure_monitor_table(db)

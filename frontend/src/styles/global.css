@@ -1333,3 +1333,77 @@ button:disabled {
   color: #94a3b8;
   margin-top: 3px;
 }
+
+
+/* Ver1.0.0 Stable dashboard */
+.stable-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 18px;
+  border: 1px solid #334155;
+  padding: 22px;
+  margin: 14px 0;
+  background: #020617;
+}
+.stable-hero.ok {
+  border-color: rgba(34,197,94,.75);
+  background: linear-gradient(135deg, rgba(34,197,94,.18), rgba(2,6,23,1));
+}
+.stable-hero.warning {
+  border-color: rgba(245,158,11,.85);
+  background: linear-gradient(135deg, rgba(245,158,11,.18), rgba(2,6,23,1));
+}
+.stable-hero.critical {
+  border-color: rgba(239,68,68,.85);
+  background: linear-gradient(135deg, rgba(239,68,68,.18), rgba(2,6,23,1));
+}
+.stable-hero span { color: #bfdbfe; }
+.stable-hero strong {
+  display:block;
+  font-size: 48px;
+  line-height: 1;
+  margin: 8px 0;
+}
+.stable-hero p { color:#cbd5e1; margin:0; }
+.stable-hero-mark { font-size: 42px; }
+.stable-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+.stable-check-card {
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #020617;
+  padding: 12px;
+}
+.stable-check-card.warning {
+  border-color: rgba(245,158,11,.85);
+}
+.stable-check-card h4 {
+  margin: 0 0 8px 0;
+}
+.stable-check-card p, .stable-check-card small {
+  color: #94a3b8;
+}
+.stable-check-row {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  border-top:1px solid #1e293b;
+  padding-top:8px;
+  margin-top:8px;
+}
+.meter {
+  height: 8px;
+  border-radius: 999px;
+  background: #1e293b;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.meter span {
+  display:block;
+  height:100%;
+  background: #60a5fa;
+}

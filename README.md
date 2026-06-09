@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver0.9.0 Home Lab Health
+MVP Ver1.0.0 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -46,3 +46,10 @@ MVP Ver0.9.0 Home Lab Health
 - Dockerサービス自動分類
 - URL自動生成
 - 構成図候補表示
+
+
+## Ver1.0.0 Stable
+
+- ホームラボ Stable ダッシュボード追加
+- TrueNAS / Proxmox / Ubuntu 監視基礎表示
+- Docker / ストレージ / Tailscale 状態表示

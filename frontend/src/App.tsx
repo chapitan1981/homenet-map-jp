@@ -4,6 +4,7 @@ import DashboardPage from './pages/DashboardPage';
 import RoomsPage from './pages/RoomsPage';
 import DevicesPage from './pages/DevicesPage';
 import DeviceDetailPage from './pages/DeviceDetailPage';
+import StableDashboardPage from './pages/StableDashboardPage';
 import AutoDiscoveryPage from './pages/AutoDiscoveryPage';
 import HomeLabDashboardPage from './pages/HomeLabDashboardPage';
 import HomeLabHealthPage from './pages/HomeLabHealthPage';
@@ -23,6 +24,7 @@ export default function App() {
           <Route path="/rooms" element={<RoomsPage />} />
           <Route path="/devices" element={<DevicesPage />} />
           <Route path="/devices/:id" element={<DeviceDetailPage />} />
+          <Route path="/stable" element={<StableDashboardPage />} />
           <Route path="/discovery" element={<AutoDiscoveryPage />} />
           <Route path="/homelab" element={<HomeLabDashboardPage />} />
           <Route path="/health" element={<HomeLabHealthPage />} />
