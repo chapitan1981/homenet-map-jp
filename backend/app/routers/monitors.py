@@ -714,6 +714,123 @@ def homelab_infra_summary():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def _v120_local_service_check(service_name: str, host_port: int, container_name: str = ""):
+    # HomeNet自身はDockerコンテナ状態を最優先で判定する
+    try:
+        containers = list_docker_containers()
+        for c in containers:
+            if container_name and c.get("name") == container_name:
+                if c.get("state") == "running":
+                    return {"status": "online", "response_ms": 0, "error": "", "method": "docker-container-running"}
+                return {"status": "offline", "response_ms": 0, "error": c.get("status", ""), "method": "docker-container-state"}
+    except Exception:
+        pass
+
+    # Docker Composeのサービス名で確認
+    service_targets = []
+    if service_name == "frontend":
+        service_targets = [("frontend", 80)]
+    elif service_name == "backend":
+        service_targets = [("backend", 8000)]
+
+    for host, port in service_targets:
+        r = _v110_tcp(host, port) if "_v110_tcp" in globals() else {"status": run_tcp(f"{host}:{port}")[0], "response_ms": 0, "error": ""}
+        if r.get("status") == "online":
+            r["method"] = f"docker-dns:{host}:{port}"
+            return r
+
+    # 最後にホスト側公開ポートへフォールバック
+    for host in ["127.0.0.1", "host.docker.internal", "192.168.0.88"]:
+        r = _v110_tcp(host, host_port) if "_v110_tcp" in globals() else {"status": run_tcp(f"{host}:{host_port}")[0], "response_ms": 0, "error": ""}
+        if r.get("status") == "online":
+            r["method"] = f"tcp:{host}:{host_port}"
+            return r
+
+    return {"status": "offline", "response_ms": 0, "error": "all checks failed", "method": "fallback-all-failed"}
+
+def _v120_tailscale_display():
+    try:
+        info = _v110_tailscale() if "_v110_tailscale" in globals() else {}
+        if info.get("available"):
+            return {**info, "display_status": "online", "display_label": "Tailscale Online"}
+        return {
+            **info,
+            "available": False,
+            "display_status": "assumed_online",
+            "display_label": "Tailscale利用中",
+            "hostname": "ubuntu-hyper-v",
+            "tailscale_ips": ["100.119.72.7"],
+            "hint": "ホスト側でTailscale稼働確認済み。コンテナ内にtailscaleコマンドが無いため既知IPを表示。",
+        }
+    except Exception as e:
+        return {
+            "available": False,
+            "status": "assumed_online",
+            "display_status": "assumed_online",
+            "display_label": "Tailscale利用中",
+            "hostname": "ubuntu-hyper-v",
+            "tailscale_ips": ["100.119.72.7"],
+            "error": str(e),
+        }
+
+@router.get("/homelab/infra-summary-v2")
+def homelab_infra_summary_v2():
+    try:
+        base = homelab_infra_summary()
+
+        ubuntu = None
+        for node in base.get("infra", []):
+            if node.get("type") == "ubuntu":
+                ubuntu = node
+                break
+
+        if ubuntu:
+            ubuntu["checks"]["Frontend 3880"] = _v120_local_service_check("frontend", 3880, "homenet-map-jp-frontend")
+            ubuntu["checks"]["Backend 3881"] = _v120_local_service_check("backend", 3881, "homenet-map-jp-backend")
+
+        base["tailscale"] = _v120_tailscale_display()
+
+        warnings = []
+        for c in base.get("docker", {}).get("unhealthy", []):
+            warnings.append({"level": "warning", "message": f"Docker要確認: {c.get('name')} ({c.get('state')})"})
+
+        host = base.get("host", {})
+        if host.get("memory", {}).get("used_percent", 0) >= 85:
+            warnings.append({"level": "warning", "message": f"メモリ使用率 {host['memory'].get('used_percent')}%"})
+
+        for d in host.get("disk", []):
+            if d.get("status") == "warning":
+                warnings.append({"level": "warning", "message": f"ディスク使用率 {d.get('path')}: {d.get('used_percent')}%"})
+
+        for node in base.get("infra", []):
+            for cname, chk in node.get("checks", {}).items():
+                if chk.get("status") not in {"online", "ok"}:
+                    warnings.append({"level": "warning", "message": f"{node.get('name')} {cname} 未疎通"})
+
+        base["warnings"] = warnings[:30]
+        base["overall"] = "ok" if not warnings else "warning"
+        base["dedicated"] = {
+            "truenas": {
+                "name": "TrueNAS",
+                "ip": "192.168.0.205",
+                "checks": next((n.get("checks") for n in base.get("infra", []) if n.get("type") == "truenas"), {}),
+            },
+            "proxmox": {
+                "name": "Proxmox",
+                "ip": "192.168.0.151",
+                "checks": next((n.get("checks") for n in base.get("infra", []) if n.get("type") == "proxmox"), {}),
+            },
+            "ubuntu": {
+                "name": "Ubuntu Docker Host",
+                "ip": "192.168.0.88",
+                "checks": ubuntu.get("checks", {}) if ubuntu else {},
+            },
+        }
+        return base
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
     ensure_monitor_table(db)

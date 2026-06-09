@@ -35,7 +35,7 @@ export default function InfrastructureMonitorPage(){
     setLoading(true);
     setMessage('');
     try{
-      const res=await api.get('/homelab/infra-summary');
+      const res=await api.get('/homelab/infra-summary-v2');
       setData(res.data);
     }catch(err:any){
       setMessage(`インフラ監視取得失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`);
@@ -105,7 +105,7 @@ export default function InfrastructureMonitorPage(){
         <h3>Tailscale</h3>
         <div className="stable-check-card">
           <h4>{data.tailscale.available ? mark(data.tailscale.status) : '⚪'} {data.tailscale.status}</h4>
-          <p>{data.tailscale.hostname || data.tailscale.error || '-'}</p>
+          <p>{data.tailscale.display_label || data.tailscale.hostname || data.tailscale.error || '-'}</p>
           <small>{data.tailscale.tailscale_ips?.join(' / ') || data.tailscale.hint || '-'}</small>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function InfrastructureMonitorPage(){
             <h4>🖥️ {node.name}</h4>
             <p>{node.ip}</p>
             {Object.entries(node.checks).map(([k,v]:any)=><div className="stable-check-row" key={k}>
-              <span>{mark(v.status)} {k}</span><small>{v.status} {v.response_ms?`${v.response_ms}ms`:''}</small>
+              <span>{mark(v.status)} {k}</span><small>{v.status} {v.response_ms?`${v.response_ms}ms`:''} {v.method?`/ ${v.method}`:''}</small>
             </div>)}
           </div>)}
         </div>
