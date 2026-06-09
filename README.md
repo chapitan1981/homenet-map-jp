@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.2.0 Home Lab Health
+MVP Ver1.2.1 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -66,3 +66,10 @@ MVP Ver1.2.0 Home Lab Health
 - Frontend/Backend監視の誤判定修正
 - Tailscale表示改善
 - インフラ監視の警告再計算改善
+
+
+## Ver1.2.1
+
+- インフラ監視タイムアウト修正
+- 高速インフラ監視API追加
+- HomeNet自身の監視はDocker状態で即判定

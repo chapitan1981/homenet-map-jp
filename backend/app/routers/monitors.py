@@ -831,6 +831,108 @@ def homelab_infra_summary_v2():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def _v121_fast_tcp(host: str, port: int, timeout: float = 0.45):
+    start = time.time()
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return {"status": "online", "response_ms": int((time.time() - start) * 1000), "error": "", "method": "fast-tcp"}
+    except Exception as e:
+        return {"status": "offline", "response_ms": 0, "error": str(e), "method": "fast-tcp"}
+
+def _v121_container_state(container_name: str):
+    try:
+        for c in list_docker_containers():
+            if c.get("name") == container_name:
+                if c.get("state") == "running":
+                    return {"status": "online", "response_ms": 0, "error": "", "method": "docker-container-running"}
+                return {"status": "offline", "response_ms": 0, "error": c.get("status", ""), "method": "docker-container-state"}
+    except Exception as e:
+        return {"status": "unknown", "response_ms": 0, "error": str(e), "method": "docker-container-error"}
+    return {"status": "offline", "response_ms": 0, "error": "container not found", "method": "docker-container-not-found"}
+
+def _v121_host_minimal():
+    try:
+        return _v110_host()
+    except Exception:
+        try:
+            return _host_metrics_v110()
+        except Exception as e:
+            return {"hostname": "unknown", "memory": {}, "disk": [], "error": str(e)}
+
+def _v121_tailscale_safe():
+    return {
+        "available": False,
+        "status": "assumed_online",
+        "display_status": "assumed_online",
+        "display_label": "Tailscale利用中",
+        "hostname": "ubuntu-hyper-v",
+        "tailscale_ips": ["100.119.72.7"],
+        "hint": "ホスト側でTailscale稼働確認済み。コンテナ内コマンドは実行せず既知IPを表示。",
+    }
+
+@router.get("/homelab/infra-summary-fast")
+def homelab_infra_summary_fast():
+    try:
+        containers = list_docker_containers()
+        running = len([c for c in containers if c.get("state") == "running"])
+        total = len(containers)
+        categories = {}
+        unhealthy = []
+        for c in containers:
+            try:
+                cat = classify_container(c.get("name",""), c.get("image",""))
+            except Exception:
+                cat = "other"
+            categories[cat] = categories.get(cat, 0) + 1
+            state = c.get("state", "")
+            status = str(c.get("status", "")).lower()
+            if state != "running" or "unhealthy" in status or "restarting" in status or "dead" in status:
+                unhealthy.append({**c, "category": cat})
+
+        ips = {"ubuntu": "192.168.0.88", "truenas": "192.168.0.205", "proxmox": "192.168.0.151"}
+        infra = [
+            {"name": "Ubuntu Docker Host", "ip": ips["ubuntu"], "type": "ubuntu", "checks": {
+                "Frontend 3880": _v121_container_state("homenet-map-jp-frontend"),
+                "Backend 3881": _v121_container_state("homenet-map-jp-backend"),
+                "SSH 22": _v121_fast_tcp(ips["ubuntu"], 22)
+            }},
+            {"name": "TrueNAS", "ip": ips["truenas"], "type": "truenas", "checks": {
+                "SMB 445": _v121_fast_tcp(ips["truenas"], 445),
+                "WebUI 80": _v121_fast_tcp(ips["truenas"], 80),
+                "WebUI 443": _v121_fast_tcp(ips["truenas"], 443)
+            }},
+            {"name": "Proxmox", "ip": ips["proxmox"], "type": "proxmox", "checks": {
+                "WebUI 8006": _v121_fast_tcp(ips["proxmox"], 8006)
+            }}
+        ]
+
+        host = _v121_host_minimal()
+        warnings = []
+        for c in unhealthy:
+            warnings.append({"level": "warning", "message": f"Docker要確認: {c.get('name')} ({c.get('state')})"})
+        if host.get("memory", {}).get("used_percent", 0) >= 85:
+            warnings.append({"level": "warning", "message": f"メモリ使用率 {host['memory'].get('used_percent')}%"})
+        for d in host.get("disk", []):
+            if d.get("status") == "warning":
+                warnings.append({"level": "warning", "message": f"ディスク使用率 {d.get('path')}: {d.get('used_percent')}%"})
+        for node in infra:
+            statuses = [chk.get("status") for chk in node.get("checks", {}).values()]
+            if statuses and all(s not in {"online", "ok"} for s in statuses):
+                warnings.append({"level": "warning", "message": f"{node.get('name')} 全チェック未疎通"})
+
+        return {
+            "overall": "ok" if not warnings else "warning",
+            "host": host,
+            "tailscale": _v121_tailscale_safe(),
+            "docker": {"total": total, "running": running, "stopped": total-running, "health_rate": round((running/total)*100) if total else 0, "categories": categories, "unhealthy": unhealthy},
+            "infra": infra,
+            "warnings": warnings[:30],
+            "fixed_ips": ips
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
     ensure_monitor_table(db)

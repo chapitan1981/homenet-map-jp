@@ -1414,3 +1414,10 @@ button:disabled {
   text-align: right;
   word-break: break-word;
 }
+
+/* Ver1.2.1 infra timeout hotfix */
+.stable-check-row small {
+  max-width: 55%;
+  text-align: right;
+  word-break: break-word;
+}
