@@ -156,6 +156,7 @@ export default function DashboardPage() {
       <h3>ホームラボ健康状態</h3>
       <p className="photo-hint">Dockerコンテナの稼働率、主要サービス、停止中コンテナを確認できます。</p>
       <div className="dashboard-action-row">
+        <Link className="small-button" to="/homelab">ホームラボ統合</Link>
         <Link className="small-button" to="/health">健康状態を開く</Link>
         <Link className="small-button" to="/monitoring">監視を開く</Link>
       </div>

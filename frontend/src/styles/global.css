@@ -1164,3 +1164,142 @@ button:disabled {
   font-size: 26px;
   margin-top: 6px;
 }
+
+
+/* Ver0.8.0 integrated homelab dashboard */
+.homelab-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  border-radius: 18px;
+  border: 1px solid #334155;
+  padding: 22px;
+  margin: 14px 0;
+  background: #020617;
+}
+
+.homelab-hero.good {
+  border-color: rgba(34,197,94,.75);
+  background: linear-gradient(135deg, rgba(34,197,94,.18), rgba(2,6,23,1));
+}
+
+.homelab-hero.warn {
+  border-color: rgba(245,158,11,.8);
+  background: linear-gradient(135deg, rgba(245,158,11,.18), rgba(2,6,23,1));
+}
+
+.homelab-hero.bad {
+  border-color: rgba(239,68,68,.8);
+  background: linear-gradient(135deg, rgba(239,68,68,.18), rgba(2,6,23,1));
+}
+
+.homelab-hero span {
+  color: #bfdbfe;
+}
+
+.homelab-hero strong {
+  display: block;
+  font-size: 52px;
+  line-height: 1;
+  margin: 8px 0;
+}
+
+.homelab-hero p {
+  margin: 0;
+  color: #cbd5e1;
+}
+
+.homelab-hero-right {
+  text-align: right;
+}
+
+.homelab-hero-right span {
+  display: block;
+  font-size: 22px;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+.homelab-hero-right small {
+  color: #94a3b8;
+}
+
+.service-launcher-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.service-launcher-card {
+  display: block;
+  padding: 12px;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #020617;
+  text-decoration: none;
+  color: #e5e7eb;
+}
+
+.service-launcher-card.ok {
+  border-color: rgba(34,197,94,.55);
+}
+
+.service-launcher-card.ng {
+  border-color: rgba(239,68,68,.7);
+}
+
+.service-launcher-card strong,
+.service-launcher-card span,
+.service-launcher-card small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.service-launcher-card span {
+  margin: 6px 0;
+  color: #93c5fd;
+}
+
+.service-launcher-card small {
+  color: #94a3b8;
+}
+
+.alert-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.alert-item {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #ef4444;
+  background: rgba(239,68,68,.10);
+}
+
+.alert-item strong,
+.alert-item span,
+.alert-item small {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stat-small {
+  font-size: 18px !important;
+}
+
+.dashboard-stat-card.good {
+  border-color: rgba(34,197,94,.65);
+}
+
+.dashboard-stat-card.warn {
+  border-color: rgba(245,158,11,.8);
+}
+
+.dashboard-stat-card.bad {
+  border-color: rgba(239,68,68,.8);
+}

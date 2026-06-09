@@ -1,3 +1,3 @@
-export const APP_VERSION = '0.7.1';
-export const APP_BUILD = 'manual-v0.7.1-health-ui';
+export const APP_VERSION = '0.8.0';
+export const APP_BUILD = 'manual-v0.8.0-integrated-dashboard';
 export const APP_NAME = 'HomeNet Map JP';

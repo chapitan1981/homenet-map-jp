@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver0.7.1 Home Lab Health
+MVP Ver0.8.0 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -30,3 +30,11 @@ MVP Ver0.7.1 Home Lab Health
 - Docker正常率の大型表示
 - カテゴリ別カードとフィルタ
 - 停止中コンテナ警告強化
+
+
+## Ver0.8.0
+
+- ホームラボ統合ダッシュボード追加
+- サービスURLランチャー追加
+- ホスト情報表示
+- Docker異常アラート表示

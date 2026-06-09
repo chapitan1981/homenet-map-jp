@@ -225,6 +225,130 @@ def register_docker_monitors(device_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"created": created, "skipped": skipped, "total": len(containers)}
 
+
+
+def first_host_port(ports):
+    if not ports:
+        return None
+    if isinstance(ports, dict):
+        for _container_port, mappings in ports.items():
+            if isinstance(mappings, list) and mappings:
+                for m in mappings:
+                    hp = m.get("HostPort")
+                    if hp:
+                        return hp
+    return None
+
+def service_url_from_container(c, host="192.168.0.88"):
+    port = first_host_port(c.get("ports"))
+    if not port:
+        return ""
+    scheme = "https" if str(port) in {"443", "9443", "8006"} else "http"
+    return f"{scheme}://{host}:{port}"
+
+def service_score(name: str, image: str):
+    text = f"{name} {image}".lower()
+    priority = ["homepage", "jellyfin", "nextcloud", "immich", "portainer", "kavita", "paperless", "stirling", "uptime-kuma", "glances", "n8n", "wud"]
+    for i, key in enumerate(priority):
+        if key in text:
+            return i
+    return 99
+
+def host_info():
+    import os
+    import platform
+    import shutil
+    info = {
+        "hostname": platform.node(),
+        "platform": platform.platform(),
+        "cpu_count": os.cpu_count(),
+        "loadavg": None,
+        "memory": {},
+        "disk": {},
+        "uptime": "",
+    }
+    try:
+        info["loadavg"] = os.getloadavg()
+    except Exception:
+        pass
+    try:
+        with open("/proc/meminfo", "r") as f:
+            mem = {}
+            for line in f:
+                k, v = line.split(":", 1)
+                mem[k] = int(v.strip().split()[0])
+            total = mem.get("MemTotal", 0)
+            available = mem.get("MemAvailable", 0)
+            used = total - available
+            info["memory"] = {
+                "total_mb": round(total / 1024),
+                "used_mb": round(used / 1024),
+                "available_mb": round(available / 1024),
+                "used_percent": round((used / total) * 100) if total else 0,
+            }
+    except Exception:
+        pass
+    try:
+        du = shutil.disk_usage("/app/app/data")
+        info["disk"] = {
+            "total_gb": round(du.total / (1024**3), 1),
+            "used_gb": round(du.used / (1024**3), 1),
+            "free_gb": round(du.free / (1024**3), 1),
+            "used_percent": round((du.used / du.total) * 100) if du.total else 0,
+        }
+    except Exception:
+        pass
+    try:
+        with open("/proc/uptime", "r") as f:
+            seconds = int(float(f.read().split()[0]))
+            days = seconds // 86400
+            hours = (seconds % 86400) // 3600
+            minutes = (seconds % 3600) // 60
+            info["uptime"] = f"{days}日 {hours}時間 {minutes}分"
+    except Exception:
+        pass
+    return info
+
+@router.get("/homelab/summary")
+def homelab_summary():
+    try:
+        containers = list_docker_containers()
+        total = len(containers)
+        running = len([c for c in containers if c.get("state") == "running"])
+        stopped = total - running
+
+        enriched = []
+        for c in containers:
+            cat = classify_container(c.get("name",""), c.get("image","")) if "classify_container" in globals() else "other"
+            url = service_url_from_container(c)
+            enriched.append({
+                **c,
+                "category": cat,
+                "url": url,
+                "priority": service_score(c.get("name",""), c.get("image","")),
+                "healthy": c.get("state") == "running",
+            })
+        enriched.sort(key=lambda x: (x.get("priority",99), x.get("name","")))
+
+        launchers = [c for c in enriched if c.get("url")]
+        important = [c for c in enriched if c.get("priority",99) < 99][:18]
+        alerts = [c for c in enriched if c.get("state") != "running"]
+
+        return {
+            "host": host_info(),
+            "docker": {
+                "total": total,
+                "running": running,
+                "stopped": stopped,
+                "health_rate": round((running / total) * 100) if total else 0,
+            },
+            "alerts": alerts,
+            "important_services": important,
+            "launchers": launchers,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
     ensure_monitor_table(db)
