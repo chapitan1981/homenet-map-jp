@@ -349,6 +349,123 @@ def homelab_summary():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def _hm_kind(name: str, image: str):
+    text = f"{name} {image}".lower()
+    rules = [
+        ("Jellyfin","media",["jellyfin"]),
+        ("Immich","photo",["immich_server","immich-app/immich-server"]),
+        ("Nextcloud","cloud",["nextcloud"]),
+        ("Kavita","media",["kavita"]),
+        ("Homepage","dashboard",["homepage"]),
+        ("Portainer","dashboard",["portainer"]),
+        ("Uptime Kuma","dashboard",["uptime-kuma"]),
+        ("WUD","dashboard",["wud"]),
+        ("Glances","dashboard",["glances"]),
+        ("Stirling PDF","document",["stirling"]),
+        ("Paperless-ngx","document",["paperless"]),
+        ("n8n","automation",["n8n"]),
+        ("PostgreSQL","database",["postgres"]),
+        ("MariaDB","database",["mariadb"]),
+        ("Redis","database",["redis","valkey"]),
+        ("Cloudflare Tunnel","proxy",["cloudflared"]),
+        ("Nginx","proxy",["nginx"]),
+    ]
+    for label, category, words in rules:
+        if any(w in text for w in words):
+            return label, category
+    try:
+        return name, classify_container(name, image)
+    except Exception:
+        return name, "other"
+
+def _hm_ports(ports):
+    pairs = []
+    if isinstance(ports, dict):
+        for cport, mappings in ports.items():
+            if isinstance(mappings, list):
+                for m in mappings:
+                    hp = m.get("HostPort")
+                    if hp:
+                        pairs.append({"host_port": hp, "container_port": cport})
+    return pairs
+
+def _hm_url(name: str, image: str, ports):
+    pairs = _hm_ports(ports)
+    if not pairs:
+        return ""
+    text = f"{name} {image}".lower()
+    prefs = []
+    if "jellyfin" in text: prefs = ["8096"]
+    elif "immich" in text: prefs = ["2283"]
+    elif "nextcloud" in text: prefs = ["8800","80"]
+    elif "homepage" in text: prefs = ["3030","3031","3000"]
+    elif "portainer" in text: prefs = ["9443","9000"]
+    elif "kavita" in text: prefs = ["5000"]
+    elif "uptime-kuma" in text: prefs = ["3002","3001"]
+    elif "stirling" in text: prefs = ["8085","8080"]
+    elif "paperless" in text: prefs = ["8010","8000"]
+    elif "n8n" in text: prefs = ["5678"]
+    elif "glances" in text: prefs = ["61208"]
+    for pref in prefs:
+        for p in pairs:
+            if p.get("host_port") == pref:
+                scheme = "https" if pref in {"443","9443","8006"} else "http"
+                return f"{scheme}://192.168.0.88:{pref}"
+    hp = pairs[0].get("host_port")
+    scheme = "https" if str(hp) in {"443","9443","8006"} else "http"
+    return f"{scheme}://192.168.0.88:{hp}"
+
+def _hm_score(name: str, image: str):
+    text = f"{name} {image}".lower()
+    order = ["homepage","jellyfin","immich","nextcloud","portainer","kavita","paperless","stirling","uptime-kuma","glances","n8n","wud","searxng","wallos","roundcube"]
+    for i, key in enumerate(order):
+        if key in text:
+            return i
+    return 99
+
+@router.get("/homelab/discovery")
+def homelab_discovery():
+    try:
+        containers = list_docker_containers()
+        services = []
+        children = []
+        alerts = []
+        for c in containers:
+            name = c.get("name","")
+            image = c.get("image","")
+            label, category = _hm_kind(name, image)
+            score = _hm_score(name, image)
+            item = {
+                **c,
+                "label": label,
+                "category": category,
+                "url": _hm_url(name, image, c.get("ports")),
+                "healthy": c.get("state") == "running",
+                "score": score,
+                "monitor_target": name,
+                "recommended": score < 99,
+            }
+            services.append(item)
+            if item["recommended"]:
+                children.append({"parent":"Ubuntu Docker Host","child":label,"name":name,"category":category,"url":item["url"]})
+            if not item["healthy"]:
+                alerts.append(item)
+        services.sort(key=lambda x:(x["score"], x["name"]))
+        return {
+            "host":{"name":"Ubuntu Docker Host","ip":"192.168.0.88","type":"docker-host"},
+            "services":services,
+            "recommended_services":[s for s in services if s["recommended"]],
+            "alerts":alerts,
+            "topology":{"root":"Ubuntu Docker Host","children":children},
+            "external_candidates":[
+                {"name":"TrueNAS","ip":"192.168.0.205","checks":["WebUI","SMB 445","Ping"]},
+                {"name":"Proxmox","ip":"192.168.0.151","checks":["WebUI 8006","Ping"]},
+            ],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
     ensure_monitor_table(db)

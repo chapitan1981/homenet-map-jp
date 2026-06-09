@@ -1303,3 +1303,33 @@ button:disabled {
 .dashboard-stat-card.bad {
   border-color: rgba(239,68,68,.8);
 }
+
+/* Ver0.9.0 auto discovery */
+.topology-tree {
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #020617;
+  padding: 14px;
+}
+.topology-root {
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+.topology-children {
+  display: grid;
+  gap: 8px;
+  margin-left: 18px;
+}
+.topology-child {
+  border-left: 2px solid #334155;
+  padding-left: 12px;
+}
+.topology-child span,
+.topology-child small {
+  display: block;
+}
+.topology-child small {
+  color: #94a3b8;
+  margin-top: 3px;
+}

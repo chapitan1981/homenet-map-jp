@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver0.8.0 Home Lab Health
+MVP Ver0.9.0 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -38,3 +38,11 @@ MVP Ver0.8.0 Home Lab Health
 - サービスURLランチャー追加
 - ホスト情報表示
 - Docker異常アラート表示
+
+
+## Ver0.9.0
+
+- 自動ホームラボ検出ページ追加
+- Dockerサービス自動分類
+- URL自動生成
+- 構成図候補表示
