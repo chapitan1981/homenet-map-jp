@@ -35,7 +35,7 @@ export default function InfrastructureMonitorPage(){
     setLoading(true);
     setMessage('');
     try{
-      const res=await api.get('/homelab/infra-summary-fast');
+      const res=await api.get('/homelab/infra-summary-display');
       setData(res.data);
     }catch(err:any){
       setMessage(`インフラ監視取得失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`);
@@ -80,6 +80,7 @@ export default function InfrastructureMonitorPage(){
         <div className="dashboard-stat-card"><span>RAM</span><strong>{data.host.memory?.used_percent ?? 0}%</strong></div>
         <div className="dashboard-stat-card"><span>Docker正常率</span><strong>{data.docker.health_rate}%</strong></div>
         <div className="dashboard-stat-card"><span>停止</span><strong>{data.docker.stopped}</strong></div>
+        <div className="dashboard-stat-card"><span>除外済み</span><strong>{(data as any).ignored_count || 0}</strong></div>
       </div>
 
       <div className="card">
@@ -104,7 +105,7 @@ export default function InfrastructureMonitorPage(){
       <div className="card">
         <h3>Tailscale</h3>
         <div className="stable-check-card">
-          <h4>{data.tailscale.available ? mark(data.tailscale.status) : '⚪'} {data.tailscale.status}</h4>
+          <h4>{mark(data.tailscale.status)} {data.tailscale.status_label || data.tailscale.status}</h4>
           <p>{data.tailscale.display_label || data.tailscale.display_label || data.tailscale.hostname || data.tailscale.error || '-'}</p>
           <small>{data.tailscale.tailscale_ips?.join(' / ') || data.tailscale.hint || '-'}</small>
         </div>
@@ -117,7 +118,7 @@ export default function InfrastructureMonitorPage(){
             <h4>🖥️ {node.name}</h4>
             <p>{node.ip}</p>
             {Object.entries(node.checks).map(([k,v]:any)=><div className="stable-check-row" key={k}>
-              <span>{mark(v.status)} {k}</span><small>{v.status} {v.response_ms?`${v.response_ms}ms`:''} {v.method?`/ ${v.method}`:''} {v.method?`/ ${v.method}`:''}</small>
+              <span>{mark(v.status)} {k}</span><small>{v.status} {v.response_ms?`${v.response_ms}ms`:''} {v.method_display?`/ ${v.method_display}`:''} {v.method_display?`/ ${v.method_display}`:''} {v.method?`/ ${v.method}`:''}</small>
             </div>)}
           </div>)}
         </div>
@@ -140,6 +141,18 @@ export default function InfrastructureMonitorPage(){
             <span className="docker-stopped">{c.state}</span>
             <small>{c.image}</small>
             <small>{c.status}</small>
+          </div>)}
+        </div>
+      </div>}
+
+      {(data as any).docker?.ignored?.length>0&&<div className="card">
+        <h3>Docker除外済み</h3>
+        <p className="photo-hint">意図的に停止しているため警告から除外しています。</p>
+        <div className="docker-container-grid">
+          {(data as any).docker.ignored.map((c:any)=><div className="docker-container-card ignored-card" key={c.id}>
+            <strong>⚪ {c.name}</strong>
+            <span>{c.state}</span>
+            <small>{c.image}</small>
           </div>)}
         </div>
       </div>}

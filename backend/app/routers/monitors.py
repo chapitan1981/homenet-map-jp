@@ -933,6 +933,90 @@ def homelab_infra_summary_fast():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def _v122_normalize_check(check):
+    if not isinstance(check, dict):
+        return check
+    method = check.get("method", "")
+    # frontend display側で重複しないように method_display を別で持つ
+    method_display = method
+    if method_display == "docker-container-running":
+        method_display = "Docker稼働"
+    elif method_display == "fast-tcp":
+        method_display = "TCP疎通"
+    elif method_display.startswith("tcp:"):
+        method_display = "TCP疎通"
+    elif method_display.startswith("docker-dns:"):
+        method_display = "Docker内部疎通"
+    return {**check, "method_display": method_display}
+
+def _v122_is_ignored_container(name: str):
+    # 手動で停止している管理用/旧コンテナは警告対象から外す
+    ignore_names = {"manual-server"}
+    return name in ignore_names
+
+@router.get("/homelab/infra-summary-display")
+def homelab_infra_summary_display():
+    try:
+        base = homelab_infra_summary_fast()
+
+        # Docker要確認から除外対象を分離
+        ignored = []
+        active_unhealthy = []
+        for c in base.get("docker", {}).get("unhealthy", []):
+            if _v122_is_ignored_container(c.get("name", "")):
+                ignored.append(c)
+            else:
+                active_unhealthy.append(c)
+
+        base["docker"]["unhealthy"] = active_unhealthy
+        base["docker"]["ignored"] = ignored
+
+        # checksに表示用methodを追加
+        for node in base.get("infra", []):
+            for cname, chk in list(node.get("checks", {}).items()):
+                node["checks"][cname] = _v122_normalize_check(chk)
+
+        # tailscale表示を自然な日本語へ
+        ts = base.get("tailscale", {})
+        if ts.get("display_status") == "assumed_online" or ts.get("status") == "assumed_online":
+            base["tailscale"] = {
+                **ts,
+                "status_label": "利用中",
+                "status": "online",
+                "method_display": "既知IP表示",
+            }
+        else:
+            base["tailscale"] = {
+                **ts,
+                "status_label": "Online" if ts.get("status") == "online" else ts.get("status", "unknown"),
+                "method_display": "tailscale status",
+            }
+
+        # warnings再計算：ignoredは警告に入れない
+        warnings = []
+        for c in active_unhealthy:
+            warnings.append({"level": "warning", "message": f"Docker要確認: {c.get('name')} ({c.get('state')})"})
+
+        host = base.get("host", {})
+        if host.get("memory", {}).get("used_percent", 0) >= 85:
+            warnings.append({"level": "warning", "message": f"メモリ使用率 {host['memory'].get('used_percent')}%"})
+        for d in host.get("disk", []):
+            if d.get("status") == "warning":
+                warnings.append({"level": "warning", "message": f"ディスク使用率 {d.get('path')}: {d.get('used_percent')}%"})
+
+        for node in base.get("infra", []):
+            statuses = [chk.get("status") for chk in node.get("checks", {}).values()]
+            if statuses and all(s not in {"online", "ok"} for s in statuses):
+                warnings.append({"level": "warning", "message": f"{node.get('name')} 全チェック未疎通"})
+
+        base["warnings"] = warnings[:30]
+        base["overall"] = "ok" if not warnings else "warning"
+        base["ignored_count"] = len(ignored)
+        return base
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
     ensure_monitor_table(db)

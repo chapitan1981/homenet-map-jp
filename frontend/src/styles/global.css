@@ -1421,3 +1421,9 @@ button:disabled {
   text-align: right;
   word-break: break-word;
 }
+
+/* Ver1.2.2 display hotfix */
+.ignored-card {
+  border-color: #64748b;
+  opacity: .85;
+}
