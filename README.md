@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.0.0 Home Lab Health
+MVP Ver1.1.0 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -53,3 +53,9 @@ MVP Ver1.0.0 Home Lab Health
 - ホームラボ Stable ダッシュボード追加
 - TrueNAS / Proxmox / Ubuntu 監視基礎表示
 - Docker / ストレージ / Tailscale 状態表示
+
+
+## Ver1.1.0
+
+- インフラ監視ページ追加
+- Ubuntu / Docker / Tailscale / TrueNAS / Proxmox の監視基礎強化

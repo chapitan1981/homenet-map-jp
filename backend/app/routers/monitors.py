@@ -609,6 +609,111 @@ def homelab_stable_summary():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def _v110_tcp(host: str, port: int, timeout: float = 1.5):
+    start = time.time()
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return {"status": "online", "response_ms": int((time.time() - start) * 1000), "error": ""}
+    except Exception as e:
+        return {"status": "offline", "response_ms": 0, "error": str(e)}
+
+def _v110_ping(host: str):
+    status, ms, err = run_ping(host)
+    return {"status": status, "response_ms": ms, "error": err}
+
+def _v110_host():
+    import os, shutil, platform
+    info = {"hostname": platform.node(), "platform": platform.platform(), "cpu_count": os.cpu_count(), "loadavg": None, "memory": {}, "disk": [], "uptime": ""}
+    try:
+        info["loadavg"] = list(os.getloadavg())
+    except Exception:
+        pass
+    try:
+        with open("/proc/meminfo", "r") as f:
+            mem = {}
+            for line in f:
+                k, v = line.split(":", 1)
+                mem[k] = int(v.strip().split()[0])
+            total = mem.get("MemTotal", 0)
+            available = mem.get("MemAvailable", 0)
+            used = total - available
+            info["memory"] = {"total_mb": round(total/1024), "used_mb": round(used/1024), "available_mb": round(available/1024), "used_percent": round((used/total)*100) if total else 0}
+    except Exception as e:
+        info["memory"] = {"error": str(e)}
+    for path in ["/", "/app/app/data"]:
+        try:
+            du = shutil.disk_usage(path)
+            pct = round((du.used / du.total) * 100) if du.total else 0
+            info["disk"].append({"path": path, "total_gb": round(du.total/(1024**3),1), "used_gb": round(du.used/(1024**3),1), "free_gb": round(du.free/(1024**3),1), "used_percent": pct, "status": "warning" if pct >= 85 else "ok"})
+        except Exception as e:
+            info["disk"].append({"path": path, "status": "error", "error": str(e)})
+    try:
+        with open("/proc/uptime","r") as f:
+            sec = int(float(f.read().split()[0]))
+            info["uptime"] = f"{sec//86400}日 {(sec%86400)//3600}時間 {(sec%3600)//60}分"
+    except Exception:
+        pass
+    return info
+
+def _v110_tailscale():
+    import subprocess, json
+    try:
+        r = subprocess.run(["tailscale", "status", "--json"], capture_output=True, text=True, timeout=3)
+        if r.returncode != 0:
+            return {"available": False, "status": "unavailable", "error": r.stderr.strip() or "tailscale command failed"}
+        data = json.loads(r.stdout)
+        self_node = data.get("Self", {})
+        return {"available": True, "status": "online" if self_node.get("Online") else "offline", "backend_state": data.get("BackendState",""), "hostname": self_node.get("HostName",""), "dns_name": self_node.get("DNSName",""), "tailscale_ips": self_node.get("TailscaleIPs", []), "os": self_node.get("OS","")}
+    except FileNotFoundError:
+        return {"available": False, "status": "not_installed_in_container", "error": "tailscale command not found in backend container"}
+    except Exception as e:
+        return {"available": False, "status": "error", "error": str(e)}
+
+def _v110_category(name: str, image: str):
+    try:
+        return classify_container(name, image)
+    except Exception:
+        return "other"
+
+@router.get("/homelab/infra-summary")
+def homelab_infra_summary():
+    try:
+        containers = list_docker_containers()
+        running = len([c for c in containers if c.get("state") == "running"])
+        total = len(containers)
+        categories = {}
+        unhealthy = []
+        for c in containers:
+            cat = _v110_category(c.get("name",""), c.get("image",""))
+            categories[cat] = categories.get(cat, 0) + 1
+            state = c.get("state", "")
+            status = str(c.get("status", "")).lower()
+            if state != "running" or "unhealthy" in status or "restarting" in status or "dead" in status:
+                unhealthy.append({**c, "category": cat})
+        ips = {"ubuntu": "192.168.0.88", "truenas": "192.168.0.205", "proxmox": "192.168.0.151"}
+        infra = [
+            {"name": "Ubuntu Docker Host", "ip": ips["ubuntu"], "type": "ubuntu", "checks": {"Ping": _v110_ping(ips["ubuntu"]), "SSH 22": _v110_tcp(ips["ubuntu"], 22), "Frontend 3880": _v110_tcp(ips["ubuntu"], 3880), "Backend 3881": _v110_tcp(ips["ubuntu"], 3881)}},
+            {"name": "TrueNAS", "ip": ips["truenas"], "type": "truenas", "checks": {"Ping": _v110_ping(ips["truenas"]), "SMB 445": _v110_tcp(ips["truenas"], 445), "WebUI 80": _v110_tcp(ips["truenas"], 80), "WebUI 443": _v110_tcp(ips["truenas"], 443)}},
+            {"name": "Proxmox", "ip": ips["proxmox"], "type": "proxmox", "checks": {"Ping": _v110_ping(ips["proxmox"]), "WebUI 8006": _v110_tcp(ips["proxmox"], 8006)}},
+        ]
+        host = _v110_host()
+        warnings = []
+        for c in unhealthy:
+            warnings.append({"level":"warning", "message": f"Docker要確認: {c.get('name')} ({c.get('state')})"})
+        if host.get("memory", {}).get("used_percent", 0) >= 85:
+            warnings.append({"level":"warning", "message": f"メモリ使用率 {host['memory'].get('used_percent')}%"})
+        for d in host.get("disk", []):
+            if d.get("status") == "warning":
+                warnings.append({"level":"warning", "message": f"ディスク使用率 {d.get('path')}: {d.get('used_percent')}%"})
+        for node in infra:
+            for cname, chk in node["checks"].items():
+                if chk.get("status") not in {"online", "ok"}:
+                    warnings.append({"level":"warning", "message": f"{node['name']} {cname} 未疎通"})
+        return {"overall": "ok" if not warnings else "warning", "host": host, "tailscale": _v110_tailscale(), "docker": {"total": total, "running": running, "stopped": total-running, "health_rate": round((running/total)*100) if total else 0, "categories": categories, "unhealthy": unhealthy}, "infra": infra, "warnings": warnings[:30], "fixed_ips": ips}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
     ensure_monitor_table(db)
