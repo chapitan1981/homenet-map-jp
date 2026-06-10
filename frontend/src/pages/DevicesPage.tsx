@@ -91,7 +91,6 @@ export default function DevicesPage(){
       ...(editingOriginal || {}),
       name: form.name,
       device_type: form.device_type,
-      type: form.device_type,
       vendor: form.vendor || '',
       model: form.model || '',
       os_name: form.os_name || '',
@@ -104,9 +103,14 @@ export default function DevicesPage(){
     try{
       if(editingId){
         await api.put(`/devices/${editingId}`, payload);
-        setMessage('機器を更新しました。');
+        await api.patch(`/devices/${editingId}/room`, {room_id:selectedRoom}).catch(()=>null);
+        setMessage('機器を保存しました。');
       }else{
-        await api.post('/devices', payload);
+        const res = await api.post('/devices', payload);
+        const savedId = res.data?.id;
+        if(savedId){
+          await api.patch(`/devices/${savedId}/room`, {room_id:selectedRoom}).catch(()=>null);
+        }
         setMessage('機器を追加しました。');
       }
       reset();
@@ -162,8 +166,9 @@ export default function DevicesPage(){
         <input placeholder="OS" value={form.os_name} onChange={e=>setForm({...form,os_name:e.target.value})}/>
       </div>
       <textarea placeholder="説明" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/>
-      <div className="page-actions">
-        <button onClick={save}>{editingId?'更新':'追加'}</button>
+
+      <div className="device-save-bar">
+        <button className="primary-save-button" onClick={save}>保存</button>
         {editingId&&<button className="secondary-button" onClick={reset}>キャンセル</button>}
       </div>
     </div>

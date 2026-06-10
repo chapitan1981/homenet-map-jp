@@ -48,3 +48,20 @@ def ensure_device_room_location_columns_v161():
         pass
 
 ensure_device_room_location_columns_v161()
+
+
+# Ver1.6.2 migration: ensure device room/location columns exist.
+def ensure_device_room_location_columns_v162():
+    try:
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            rows = conn.execute(text("PRAGMA table_info(devices)")).fetchall()
+            cols = [r[1] for r in rows]
+            if "room_id" not in cols:
+                conn.execute(text("ALTER TABLE devices ADD COLUMN room_id INTEGER"))
+            if "location_id" not in cols:
+                conn.execute(text("ALTER TABLE devices ADD COLUMN location_id INTEGER"))
+    except Exception:
+        pass
+
+ensure_device_room_location_columns_v162()

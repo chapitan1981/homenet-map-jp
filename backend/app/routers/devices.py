@@ -6,6 +6,23 @@ from .. import models, schemas
 
 router = APIRouter(prefix="/devices", tags=["devices"])
 
+
+def normalize_device_room_payload_v162(data: dict):
+    room_id = data.get("room_id", None)
+    location_id = data.get("location_id", None)
+    if room_id == "":
+        room_id = None
+    if location_id == "":
+        location_id = None
+    if room_id is None and location_id is not None:
+        room_id = location_id
+    if location_id is None and room_id is not None:
+        location_id = room_id
+    data["room_id"] = room_id
+    data["location_id"] = location_id
+    return data
+
+
 @router.get("", response_model=List[schemas.Device])
 def list_devices(keyword: Optional[str] = None, device_type: Optional[str] = None, db: Session = Depends(get_db)):
     q = db.query(models.Device)
@@ -17,7 +34,7 @@ def list_devices(keyword: Optional[str] = None, device_type: Optional[str] = Non
 
 @router.post("", response_model=schemas.Device)
 def create_device(payload: schemas.DeviceCreate, db: Session = Depends(get_db)):
-    item = models.Device(**payload.model_dump())
+    item = models.Device(**normalize_device_room_payload_v162(payload.model_dump()))
     db.add(item)
     db.commit()
     db.refresh(item)
@@ -35,7 +52,7 @@ def update_device(device_id: int, payload: schemas.DeviceCreate, db: Session = D
     item = db.query(models.Device).get(device_id)
     if not item:
         raise HTTPException(status_code=404, detail="Device not found")
-    for k, v in payload.model_dump().items():
+    for k, v in normalize_device_room_payload_v162(payload.model_dump()).items():
         setattr(item, k, v)
     db.commit()
     db.refresh(item)
@@ -49,3 +66,22 @@ def delete_device(device_id: int, db: Session = Depends(get_db)):
     db.delete(item)
     db.commit()
     return {"success": True}
+
+
+@router.patch("/{device_id}/room", response_model=schemas.Device)
+def update_device_room_v162(device_id: int, payload: dict, db: Session = Depends(get_db)):
+    item = db.query(models.Device).get(device_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Device not found")
+    room_id = payload.get("room_id", None)
+    if room_id == "":
+        room_id = None
+    if room_id is not None:
+        room_id = int(room_id)
+    if hasattr(item, "room_id"):
+        item.room_id = room_id
+    if hasattr(item, "location_id"):
+        item.location_id = room_id
+    db.commit()
+    db.refresh(item)
+    return item

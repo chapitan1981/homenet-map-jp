@@ -149,6 +149,7 @@ class RoomPhoto(BaseModel):
 class RackBase(BaseModel):
     name: str
     room_id: Optional[int] = None
+    location_id: Optional[int] = None
     total_units: int = 12
     description: str = ""
 
