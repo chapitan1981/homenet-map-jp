@@ -23,6 +23,7 @@ export default function DevicesPage(){
   const [rooms,setRooms]=useState<Room[]>([]);
   const [message,setMessage]=useState('');
   const [editingId,setEditingId]=useState<number|null>(null);
+  const [editingOriginal,setEditingOriginal]=useState<Device|null>(null);
   const [form,setForm]=useState<any>({
     name:'',
     device_type:'pc',
@@ -44,7 +45,7 @@ export default function DevicesPage(){
       setDevices(d.data || []);
       setRooms(r.data || []);
     }catch(err:any){
-      setMessage(`機器データ取得失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`);
+      setMessage(`機器データ取得失敗: ${JSON.stringify(err?.response?.data || err?.message || 'unknown error')}`);
     }
   };
 
@@ -59,11 +60,13 @@ export default function DevicesPage(){
 
   const reset=()=>{
     setEditingId(null);
+    setEditingOriginal(null);
     setForm({name:'',device_type:'pc',vendor:'',model:'',os_name:'',description:'',icon:'pc',room_id:''});
   };
 
   const edit=(d:Device)=>{
     setEditingId(d.id);
+    setEditingOriginal(d);
     setForm({
       name:d.name || '',
       device_type:d.device_type || d.type || 'pc',
@@ -82,11 +85,22 @@ export default function DevicesPage(){
       setMessage('機器名を入力してください。');
       return;
     }
+
+    const selectedRoom = form.room_id ? Number(form.room_id) : null;
     const payload = {
-      ...form,
-      room_id: form.room_id ? Number(form.room_id) : null,
-      location_id: form.room_id ? Number(form.room_id) : null,
+      ...(editingOriginal || {}),
+      name: form.name,
+      device_type: form.device_type,
+      type: form.device_type,
+      vendor: form.vendor || '',
+      model: form.model || '',
+      os_name: form.os_name || '',
+      description: form.description || '',
+      icon: form.icon || form.device_type || 'pc',
+      room_id: selectedRoom,
+      location_id: selectedRoom,
     };
+
     try{
       if(editingId){
         await api.put(`/devices/${editingId}`, payload);
@@ -98,7 +112,7 @@ export default function DevicesPage(){
       reset();
       await load();
     }catch(err:any){
-      setMessage(`保存失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`);
+      setMessage(`保存失敗: ${JSON.stringify(err?.response?.data || err?.message || 'unknown error')}`);
     }
   };
 
@@ -108,7 +122,7 @@ export default function DevicesPage(){
       await api.delete(`/devices/${id}`);
       await load();
     }catch(err:any){
-      setMessage(`削除失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`);
+      setMessage(`削除失敗: ${JSON.stringify(err?.response?.data || err?.message || 'unknown error')}`);
     }
   };
 
