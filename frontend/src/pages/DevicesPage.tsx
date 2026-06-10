@@ -14,6 +14,7 @@ type Device = {
   icon?:string;
   room_id?:number|null;
   location_id?:number|null;
+  room_name?:string;
 };
 
 type Room = { id:number; name:string };
@@ -39,7 +40,7 @@ export default function DevicesPage(){
     setMessage('');
     try{
       const [d,r]=await Promise.all([
-        api.get('/devices'),
+        api.get('/devices/with-rooms').catch(()=>api.get('/devices')),
         api.get('/rooms').catch(()=>({data:[]}))
       ]);
       setDevices(d.data || []);
@@ -51,7 +52,9 @@ export default function DevicesPage(){
 
   useEffect(()=>{load()},[]);
 
-  const roomName=(id:any)=>{
+  const roomName=(d:Device)=>{
+    if(d.room_name) return d.room_name;
+    const id = d.room_id || d.location_id;
     if(!id) return '未設定';
     return rooms.find(r=>r.id===Number(id))?.name || '未設定';
   };
@@ -88,7 +91,6 @@ export default function DevicesPage(){
 
     const selectedRoom = form.room_id ? Number(form.room_id) : null;
     const payload = {
-      ...(editingOriginal || {}),
       name: form.name,
       device_type: form.device_type,
       vendor: form.vendor || '',
@@ -96,20 +98,18 @@ export default function DevicesPage(){
       os_name: form.os_name || '',
       description: form.description || '',
       icon: form.icon || form.device_type || 'pc',
-      room_id: selectedRoom,
-      location_id: selectedRoom,
     };
 
     try{
       if(editingId){
         await api.put(`/devices/${editingId}`, payload);
-        await api.patch(`/devices/${editingId}/room`, {room_id:selectedRoom}).catch(()=>null);
+        await api.patch(`/devices/${editingId}/room`, {room_id:selectedRoom});
         setMessage('機器を保存しました。');
       }else{
         const res = await api.post('/devices', payload);
         const savedId = res.data?.id;
         if(savedId){
-          await api.patch(`/devices/${savedId}/room`, {room_id:selectedRoom}).catch(()=>null);
+          await api.patch(`/devices/${savedId}/room`, {room_id:selectedRoom});
         }
         setMessage('機器を追加しました。');
       }
@@ -183,7 +183,7 @@ export default function DevicesPage(){
           {devices.map(d=><tr key={d.id}>
             <td><Link className="text-link" to={`/devices/${d.id}`}>🖥️ {d.name}</Link></td>
             <td>{d.device_type || d.type || '-'}</td>
-            <td>{roomName(d.room_id || d.location_id)}</td>
+            <td>{roomName(d)}</td>
             <td>{[d.vendor,d.model].filter(Boolean).join(' / ') || '-'}</td>
             <td>
               <button className="small-button" onClick={()=>edit(d)}>編集</button>

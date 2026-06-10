@@ -1615,3 +1615,19 @@ button:disabled {
   font-weight: 700;
   padding: 12px 18px;
 }
+
+/* Ver1.6.3 device location persistence */
+.primary-save-button {
+  min-width: 150px;
+  font-size: 16px;
+  font-weight: 700;
+  padding: 12px 18px;
+}
+.device-save-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #334155;
+}

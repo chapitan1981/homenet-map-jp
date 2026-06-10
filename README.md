@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.6.2 Home Lab Health
+MVP Ver1.6.3 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -125,3 +125,9 @@ MVP Ver1.6.2 Home Lab Health
 
 - 機器編集の保存ボタンを明確化
 - 保管部屋/設置部屋の保存を修正
+
+
+## Ver1.6.3
+
+- 保管部屋/設置部屋の保存先を device_locations に変更
+- 機器一覧と構成図で部屋情報を反映

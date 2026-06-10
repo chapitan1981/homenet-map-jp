@@ -35,7 +35,7 @@ export default function DiagramPage(){
     setMessage('');
     try{
       const [d,r,c]=await Promise.all([
-        api.get('/devices'),
+        api.get('/devices/with-rooms').catch(()=>api.get('/devices')),
         api.get('/rooms').catch(()=>({data:[]})),
         api.get('/connections').catch(()=>({data:[]})),
       ]);
@@ -82,7 +82,7 @@ export default function DiagramPage(){
   const grouped = useMemo(()=>{
     const map:Record<string,Device[]> = {};
     filteredDevices.forEach(d=>{
-      const key = roomName(d.room_id || d.location_id);
+      const key = d.room_name || roomName(d.room_id || d.location_id);
       map[key] = map[key] || [];
       map[key].push(d);
     });
