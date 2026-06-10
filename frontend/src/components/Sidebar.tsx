@@ -20,6 +20,7 @@ export default function Sidebar() {
         <Link to="/room-layout">部屋レイアウト</Link>
         <Link to="/backup">バックアップ</Link>
         <Link to="/racks">ラックビュー</Link>
+        <Link to="/manual">マニュアル</Link>
         <Link to="/settings">設定</Link>
       </nav>
     <div className="sidebar-version">

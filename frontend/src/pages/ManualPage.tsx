@@ -1,0 +1,157 @@
+import { Link } from 'react-router-dom';
+
+export default function ManualPage(){
+  return <>
+    <div className="page-title-row">
+      <h2>HomeNet Map JP マニュアル</h2>
+      <div className="page-actions">
+        <Link className="small-button" to="/center">統合監視</Link>
+        <Link className="small-button" to="/backup">バックアップ</Link>
+      </div>
+    </div>
+
+    <div className="manual-hero">
+      <div>
+        <span>Ver1.4.0</span>
+        <strong>ホームラボ運用マニュアル</strong>
+        <p>機器管理・監視・自動検出・バックアップまでの基本操作をまとめています。</p>
+      </div>
+    </div>
+
+    <div className="manual-layout">
+      <aside className="manual-toc card">
+        <h3>目次</h3>
+        <a href="#overview">概要</a>
+        <a href="#daily">日常運用</a>
+        <a href="#devices">機器管理</a>
+        <a href="#monitoring">監視</a>
+        <a href="#center">統合監視</a>
+        <a href="#discovery">自動検出</a>
+        <a href="#layout">部屋・構成図</a>
+        <a href="#backup">バックアップ</a>
+        <a href="#trouble">トラブル対応</a>
+        <a href="#update">更新手順</a>
+      </aside>
+
+      <main className="manual-content">
+        <section id="overview" className="card">
+          <h3>1. 概要</h3>
+          <p>HomeNet Map JP は、自宅ホームラボの機器・ネットワーク・Dockerサービス・監視状況をまとめて管理するアプリです。</p>
+          <ul>
+            <li>機器、部屋、ラック、写真、配置情報を登録できます。</li>
+            <li>Dockerコンテナ、TrueNAS、Proxmox、Ubuntuホストの状態を確認できます。</li>
+            <li>統合監視センターから主要サービスへ直接アクセスできます。</li>
+          </ul>
+        </section>
+
+        <section id="daily" className="card">
+          <h3>2. 日常運用</h3>
+          <p>通常は左メニューの「統合監視」を最初に開き、全体状態を確認します。</p>
+          <ul>
+            <li>全体正常：緑表示なら基本問題なし</li>
+            <li>警告あり：重要アラートとDocker要確認を確認</li>
+            <li>サービス起動：統合監視のサービスランチャーから開く</li>
+            <li>設定変更前：バックアップ画面でZIP Exportを保存</li>
+          </ul>
+        </section>
+
+        <section id="devices" className="card">
+          <h3>3. 機器管理</h3>
+          <p>サーバー、PC、NAS、ネットワーク機器、仮想マシンなどを登録します。</p>
+          <ol>
+            <li>左メニューから「機器管理」を開きます。</li>
+            <li>機器名、種別、メーカー、OS、説明を入力します。</li>
+            <li>必要に応じてタグ、パーツ、インターフェース、URLを登録します。</li>
+          </ol>
+          <p>例：5950Proxmox、TrueNAS、Ubuntu Docker Host、Jellyfinサーバーなど。</p>
+        </section>
+
+        <section id="monitoring" className="card">
+          <h3>4. 監視</h3>
+          <p>Ping、HTTP、TCP、Dockerコンテナ監視を登録できます。</p>
+          <ul>
+            <li>Ping：IP疎通確認</li>
+            <li>HTTP：Web UI確認</li>
+            <li>TCP：SSH、SMB、Proxmox 8006などのポート確認</li>
+            <li>Docker：コンテナの起動状態確認</li>
+          </ul>
+        </section>
+
+        <section id="center" className="card">
+          <h3>5. 統合監視センター</h3>
+          <p>現在もっとも重要な運用画面です。</p>
+          <ul>
+            <li>Ubuntu Docker Host の稼働確認</li>
+            <li>TrueNAS の SMB / WebUI 確認</li>
+            <li>Proxmox の WebUI 確認</li>
+            <li>Tailscale の利用状態確認</li>
+            <li>Docker正常率、停止数、除外数の確認</li>
+            <li>Jellyfin、Immich、Nextcloud、Homepage、Portainer等へのランチャー</li>
+          </ul>
+        </section>
+
+        <section id="discovery" className="card">
+          <h3>6. 自動検出</h3>
+          <p>Dockerコンテナから主要サービスを自動判定します。</p>
+          <p>検出対象例：Jellyfin、Immich、Nextcloud、Homepage、Portainer、Kavita、Paperless、Stirling PDF、Uptime Kuma、n8n。</p>
+        </section>
+
+        <section id="layout" className="card">
+          <h3>7. 部屋・構成図・レイアウト</h3>
+          <p>部屋写真に機器を配置したり、機器間の接続を構成図として管理できます。</p>
+          <ul>
+            <li>部屋管理：部屋情報を登録</li>
+            <li>部屋レイアウト：写真上に機器を配置</li>
+            <li>構成図：機器間の接続関係を確認</li>
+            <li>ラックビュー：サーバーラック風に機器を整理</li>
+          </ul>
+        </section>
+
+        <section id="backup" className="card">
+          <h3>8. バックアップ</h3>
+          <p>バックアップ画面から登録データをZIP形式でExportできます。</p>
+          <p>バージョン更新前、機器を大量登録する前、構成変更前には必ず保存してください。</p>
+          <pre><code>{`推奨タイミング：
+- バージョン更新前
+- Docker構成変更前
+- TrueNAS/Proxmox構成変更前
+- 写真や配置を大量追加した後`}</code></pre>
+        </section>
+
+        <section id="trouble" className="card">
+          <h3>9. トラブル対応</h3>
+          <h4>画面が古いままの場合</h4>
+          <pre><code>{`Ctrl + F5 で強制更新`}</code></pre>
+          <h4>コンテナ状態確認</h4>
+          <pre><code>{`cd ~/homenet-map-jp
+docker compose ps`}</code></pre>
+          <h4>再起動</h4>
+          <pre><code>{`docker compose down
+docker compose up -d --build --force-recreate`}</code></pre>
+          <h4>ログ確認</h4>
+          <pre><code>{`docker compose logs --tail=100 backend
+docker compose logs --tail=100 frontend`}</code></pre>
+        </section>
+
+        <section id="update" className="card">
+          <h3>10. 更新手順</h3>
+          <p>Windows側でZIPを展開してGitHubへpushし、Ubuntu側でpull反映します。</p>
+          <h4>Windows側</h4>
+          <pre><code>{`cd $HOME\\Downloads
+Expand-Archive .\\homenet-map-jp-mvp-vX.X.X.zip -DestinationPath .\\vXXX -Force
+robocopy .\\vXXX\\homenet-map-jp .\\homenet-map-jp /E
+cd .\\homenet-map-jp
+git add .
+git commit -m "Update HomeNet Map JP"
+git push`}</code></pre>
+          <h4>Ubuntu側</h4>
+          <pre><code>{`cd ~/homenet-map-jp
+git fetch origin
+git reset --hard origin/main
+docker compose down
+docker compose up -d --build --force-recreate`}</code></pre>
+        </section>
+      </main>
+    </div>
+  </>;
+}

@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.3.1 Home Lab Health
+MVP Ver1.4.0 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -93,3 +93,10 @@ MVP Ver1.3.1 Home Lab Health
 
 - インフラ監視画面の重複表示を完全修正
 - 統合監視センターは維持
+
+
+## Ver1.4.0
+
+- HTMLマニュアルページ追加
+- 左メニューにマニュアルを追加
+- 更新手順・トラブル対応を掲載
