@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.4.0 Home Lab Health
+MVP Ver1.5.0 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -100,3 +100,10 @@ MVP Ver1.4.0 Home Lab Health
 - HTMLマニュアルページ追加
 - 左メニューにマニュアルを追加
 - 更新手順・トラブル対応を掲載
+
+
+## Ver1.5.0
+
+- データ保護ページ追加
+- 構成図の部屋別/機器種別別フィルタ追加
+- アップデートでデータを消さない運用方針を明文化

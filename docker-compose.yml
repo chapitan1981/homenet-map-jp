@@ -6,6 +6,7 @@ services:
     restart: unless-stopped
     ports:
       - "${BACKEND_PORT}:8000"
+    # DATA PROTECTION: Do not remove this bind mount. It stores DB/photos/uploads on the host.
     volumes:
       - ./backend/app/data:/app/app/data
       - /var/run/docker.sock:/var/run/docker.sock:ro

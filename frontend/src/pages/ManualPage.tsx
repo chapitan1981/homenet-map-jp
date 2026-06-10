@@ -29,6 +29,7 @@ export default function ManualPage(){
         <a href="#discovery">自動検出</a>
         <a href="#layout">部屋・構成図</a>
         <a href="#backup">バックアップ</a>
+        <a href="#protection">データ保護</a>
         <a href="#trouble">トラブル対応</a>
         <a href="#update">更新手順</a>
       </aside>
@@ -116,6 +117,13 @@ export default function ManualPage(){
 - Docker構成変更前
 - TrueNAS/Proxmox構成変更前
 - 写真や配置を大量追加した後`}</code></pre>
+        </section>
+
+        <section id="protection" className="card">
+          <h3>9. データ保護</h3>
+          <p>登録済み機器・写真・部屋情報・監視設定は <code>backend/app/data</code> に保存します。</p>
+          <p>通常更新では <code>docker compose down -v</code> を使わず、<code>backend/app/data</code> を削除しないでください。</p>
+          <p>大きな変更前は「バックアップ」画面からZIP Exportを保存してください。</p>
         </section>
 
         <section id="trouble" className="card">

@@ -14,6 +14,7 @@ import MonitoringPage from './pages/MonitoringPage';
 import DiagramPage from './pages/DiagramPage';
 import RoomLayoutPage from './pages/RoomLayoutPage';
 import BackupPage from './pages/BackupPage';
+import DataProtectionPage from './pages/DataProtectionPage';
 import ManualPage from './pages/ManualPage';
 import SettingsPage from './pages/SettingsPage';
 import RackPage from './pages/RackPage';
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/room-layout" element={<RoomLayoutPage />} />
           <Route path="/backup" element={<BackupPage />} />
           <Route path="/racks" element={<RackPage />} />
+          <Route path="/data-protection" element={<DataProtectionPage />} />
           <Route path="/manual" element={<ManualPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
