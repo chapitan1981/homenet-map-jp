@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.5.0 Home Lab Health
+MVP Ver1.6.0 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -107,3 +107,9 @@ MVP Ver1.5.0 Home Lab Health
 - データ保護ページ追加
 - 構成図の部屋別/機器種別別フィルタ追加
 - アップデートでデータを消さない運用方針を明文化
+
+
+## Ver1.6.0
+
+- 機器管理に保管部屋/設置部屋を追加
+- 構成図で部屋ごとに機器をグループ表示

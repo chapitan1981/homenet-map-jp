@@ -16,3 +16,18 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+# Ver1.6.0 lightweight migration helper
+def ensure_device_room_column():
+    try:
+        from sqlalchemy import text
+        with engine.begin() as conn:
+            rows = conn.execute(text("PRAGMA table_info(devices)")).fetchall()
+            cols = [r[1] for r in rows]
+            if "room_id" not in cols:
+                conn.execute(text("ALTER TABLE devices ADD COLUMN room_id INTEGER"))
+    except Exception:
+        pass
+
+ensure_device_room_column()

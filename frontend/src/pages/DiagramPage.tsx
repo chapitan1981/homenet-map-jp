@@ -6,14 +6,11 @@ type Device = {
   name:string;
   device_type?:string;
   type?:string;
-  location_id?:number|null;
   room_id?:number|null;
+  location_id?:number|null;
 };
 
-type Room = {
-  id:number;
-  name:string;
-};
+type Room = { id:number; name:string };
 
 type Connection = {
   id:number;
@@ -52,15 +49,18 @@ export default function DiagramPage(){
 
   useEffect(()=>{load()},[]);
 
-  const deviceTypes = useMemo(()=>{
-    return Array.from(new Set(devices.map(d=>d.device_type || d.type || 'unknown'))).sort();
-  },[devices]);
+  const deviceTypes = useMemo(()=>Array.from(new Set(devices.map(d=>d.device_type || d.type || 'unknown'))).sort(),[devices]);
+
+  const roomName=(id:any)=>{
+    if(!id) return '未設定';
+    return rooms.find(r=>r.id===Number(id))?.name || '未設定';
+  };
 
   const filteredDevices = useMemo(()=>{
     let list = devices;
     if(mode === 'room' && roomId){
       const id = Number(roomId);
-      list = list.filter(d=>d.location_id === id || d.room_id === id);
+      list = list.filter(d=>(d.room_id || d.location_id) === id);
     }
     if(mode === 'type' && deviceType){
       list = list.filter(d=>(d.device_type || d.type || 'unknown') === deviceType);
@@ -79,6 +79,16 @@ export default function DiagramPage(){
     });
   },[connections,filteredIds]);
 
+  const grouped = useMemo(()=>{
+    const map:Record<string,Device[]> = {};
+    filteredDevices.forEach(d=>{
+      const key = roomName(d.room_id || d.location_id);
+      map[key] = map[key] || [];
+      map[key].push(d);
+    });
+    return map;
+  },[filteredDevices,rooms]);
+
   const deviceName=(id:number|undefined)=>{
     if(!id) return '-';
     return devices.find(d=>d.id===id)?.name || `#${id}`;
@@ -94,7 +104,7 @@ export default function DiagramPage(){
 
     <div className="card">
       <h3>表示切替</h3>
-      <p className="photo-hint">全体、部屋別、機器種別別に構成図表示を切り替えます。</p>
+      <p className="photo-hint">全体、部屋別、機器種別別に構成図表示を切り替えます。機器管理で保管部屋/設置部屋を設定すると部屋ごとにグループ表示されます。</p>
       <div className="diagram-filter-row">
         <select value={mode} onChange={e=>setMode(e.target.value)}>
           <option value="all">全体表示</option>
@@ -103,7 +113,7 @@ export default function DiagramPage(){
         </select>
 
         {mode==='room'&&<select value={roomId} onChange={e=>setRoomId(e.target.value)}>
-          <option value="">部屋を選択</option>
+          <option value="">全部屋</option>
           {rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}
         </select>}
 
@@ -122,10 +132,15 @@ export default function DiagramPage(){
         <div><span>表示モード</span><strong>{mode==='all'?'全体':mode==='room'?'部屋別':'種別別'}</strong></div>
       </div>
 
-      <div className="diagram-node-grid">
-        {filteredDevices.map(d=><div className="diagram-node-card" key={d.id}>
-          <strong>🖥️ {d.name}</strong>
-          <small>{d.device_type || d.type || 'unknown'}</small>
+      <div className="diagram-room-grid">
+        {Object.entries(grouped).map(([room, list])=><div className="diagram-room-card" key={room}>
+          <h4>🏠 {room}</h4>
+          <div className="diagram-node-grid">
+            {list.map(d=><div className="diagram-node-card" key={d.id}>
+              <strong>🖥️ {d.name}</strong>
+              <small>{d.device_type || d.type || 'unknown'}</small>
+            </div>)}
+          </div>
         </div>)}
       </div>
     </div>
