@@ -40,8 +40,8 @@ app.include_router(racks.router, prefix="/api")
 def version():
     return {
         "name": "HomeNet Map JP",
-        "version": "1.3.0",
-        "build": "manual-v1.3.0-monitoring-center"
+        "version": "1.3.1",
+        "build": "manual-v1.3.1-infra-display-fix"
     }
 
 app.include_router(custom_fields.router, prefix="/api")

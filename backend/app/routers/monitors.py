@@ -1128,6 +1128,57 @@ def homelab_monitoring_center():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def _v131_clean_method(method: str):
+    if not method:
+        return ""
+    if method == "docker-container-running":
+        return "Docker稼働"
+    if method == "fast-tcp":
+        return "TCP疎通"
+    if method.startswith("tcp:"):
+        return "TCP疎通"
+    if method.startswith("docker-dns:"):
+        return "Docker内部疎通"
+    return method
+
+def _v131_clean_summary(base):
+    for node in base.get("infra", []):
+        for key, chk in list(node.get("checks", {}).items()):
+            if not isinstance(chk, dict):
+                continue
+            method = _v131_clean_method(chk.get("method_display") or chk.get("method") or "")
+            status = chk.get("status", "unknown")
+            node["checks"][key] = {
+                **chk,
+                "method_display": method,
+                "display": f"{status} / {method}" if method else status,
+            }
+    ts = base.get("tailscale", {})
+    if ts.get("display_status") == "assumed_online" or ts.get("status") in {"assumed_online", "online"}:
+        base["tailscale"] = {
+            **ts,
+            "status": "online",
+            "status_label": "利用中",
+            "display_label": "Tailscale利用中",
+            "method_display": "既知IP表示",
+        }
+    return base
+
+@router.get("/homelab/infra-summary-clean")
+def homelab_infra_summary_clean():
+    try:
+        try:
+            base = homelab_infra_summary_display()
+        except Exception:
+            try:
+                base = homelab_infra_summary_fast()
+            except Exception:
+                base = homelab_infra_summary()
+        return _v131_clean_summary(base)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
     ensure_monitor_table(db)

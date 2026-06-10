@@ -6,9 +6,10 @@ type InfraSummary = {
   overall:string;
   host:any;
   tailscale:any;
-  docker:{total:number;running:number;stopped:number;health_rate:number;categories:Record<string,number>;unhealthy:any[]};
+  docker:{total:number;running:number;stopped:number;health_rate:number;categories:Record<string,number>;unhealthy:any[];ignored?:any[]};
   infra:any[];
   warnings:{level:string;message:string}[];
+  ignored_count?:number;
 };
 
 const mark=(s:string)=>s==='online'||s==='ok'?'🟢':s==='warning'?'🟡':s==='offline'?'🔴':'⚪';
@@ -26,6 +27,13 @@ const catLabel:Record<string,string>={
   other:'その他'
 };
 
+function checkDisplay(v:any){
+  if(!v) return '-';
+  if(v.display) return v.display;
+  if(v.method_display) return `${v.status} / ${v.method_display}`;
+  return v.status || '-';
+}
+
 export default function InfrastructureMonitorPage(){
   const [data,setData]=useState<InfraSummary|null>(null);
   const [message,setMessage]=useState('');
@@ -35,7 +43,7 @@ export default function InfrastructureMonitorPage(){
     setLoading(true);
     setMessage('');
     try{
-      const res=await api.get('/homelab/infra-summary-display');
+      const res=await api.get('/homelab/infra-summary-clean');
       setData(res.data);
     }catch(err:any){
       setMessage(`インフラ監視取得失敗: ${err?.response?.data?.detail || err?.message || 'unknown error'}`);
@@ -50,6 +58,7 @@ export default function InfrastructureMonitorPage(){
     <div className="page-title-row">
       <h2>インフラ監視</h2>
       <div className="page-actions">
+        <Link className="small-button" to="/center">統合監視</Link>
         <Link className="small-button" to="/stable">Stable</Link>
         <Link className="small-button" to="/homelab">ホームラボ</Link>
         <button onClick={load} disabled={loading}>{loading?'取得中...':'再取得'}</button>
@@ -80,7 +89,7 @@ export default function InfrastructureMonitorPage(){
         <div className="dashboard-stat-card"><span>RAM</span><strong>{data.host.memory?.used_percent ?? 0}%</strong></div>
         <div className="dashboard-stat-card"><span>Docker正常率</span><strong>{data.docker.health_rate}%</strong></div>
         <div className="dashboard-stat-card"><span>停止</span><strong>{data.docker.stopped}</strong></div>
-        <div className="dashboard-stat-card"><span>除外済み</span><strong>{(data as any).ignored_count || 0}</strong></div>
+        <div className="dashboard-stat-card"><span>除外済み</span><strong>{data.ignored_count || data.docker.ignored?.length || 0}</strong></div>
       </div>
 
       <div className="card">
@@ -106,7 +115,7 @@ export default function InfrastructureMonitorPage(){
         <h3>Tailscale</h3>
         <div className="stable-check-card">
           <h4>{mark(data.tailscale.status)} {data.tailscale.status_label || data.tailscale.status}</h4>
-          <p>{data.tailscale.display_label || data.tailscale.display_label || data.tailscale.hostname || data.tailscale.error || '-'}</p>
+          <p>{data.tailscale.display_label || data.tailscale.hostname || data.tailscale.error || '-'}</p>
           <small>{data.tailscale.tailscale_ips?.join(' / ') || data.tailscale.hint || '-'}</small>
         </div>
       </div>
@@ -118,7 +127,7 @@ export default function InfrastructureMonitorPage(){
             <h4>🖥️ {node.name}</h4>
             <p>{node.ip}</p>
             {Object.entries(node.checks).map(([k,v]:any)=><div className="stable-check-row" key={k}>
-              <span>{mark(v.status)} {k}</span><small>{v.display || `${v.status}${v.method_display?` / ${v.method_display}`:''}`} {v.method_display?`/ ${v.method_display}`:''} {v.method?`/ ${v.method}`:''}</small>
+              <span>{mark(v.status)} {k}</span><small>{checkDisplay(v)}</small>
             </div>)}
           </div>)}
         </div>
@@ -145,11 +154,11 @@ export default function InfrastructureMonitorPage(){
         </div>
       </div>}
 
-      {(data as any).docker?.ignored?.length>0&&<div className="card">
+      {(data.docker.ignored || []).length>0&&<div className="card">
         <h3>Docker除外済み</h3>
         <p className="photo-hint">意図的に停止しているため警告から除外しています。</p>
         <div className="docker-container-grid">
-          {(data as any).docker.ignored.map((c:any)=><div className="docker-container-card ignored-card" key={c.id}>
+          {data.docker.ignored?.map((c:any)=><div className="docker-container-card ignored-card" key={c.id}>
             <strong>⚪ {c.name}</strong>
             <span>{c.state}</span>
             <small>{c.image}</small>

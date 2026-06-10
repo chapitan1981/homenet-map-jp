@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.3.0 Home Lab Health
+MVP Ver1.3.1 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -87,3 +87,9 @@ MVP Ver1.3.0 Home Lab Health
 - ホームラボ統合監視センター追加
 - 重要アラート上部表示
 - Ubuntu / TrueNAS / Proxmox / Docker / Tailscale を1画面に統合
+
+
+## Ver1.3.1
+
+- インフラ監視画面の重複表示を完全修正
+- 統合監視センターは維持
