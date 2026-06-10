@@ -9,6 +9,7 @@ export default function Sidebar() {
         <Link to="/">ダッシュボード</Link>
         <Link to="/rooms">部屋管理</Link>
         <Link to="/devices">機器管理</Link>
+        <Link to="/center">統合監視</Link>
         <Link to="/infra">インフラ監視</Link>
         <Link to="/stable">Stable</Link>
         <Link to="/discovery">自動検出</Link>

@@ -1017,6 +1017,117 @@ def homelab_infra_summary_display():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def _v130_clean_check(chk):
+    if not isinstance(chk, dict):
+        return chk
+    status = chk.get("status", "unknown")
+    method = chk.get("method_display") or chk.get("method") or ""
+    if method == "docker-container-running":
+        method = "Docker稼働"
+    elif method == "fast-tcp":
+        method = "TCP疎通"
+    elif method.startswith("tcp:"):
+        method = "TCP疎通"
+    elif method.startswith("docker-dns:"):
+        method = "Docker内部疎通"
+    elif method == "":
+        method = "-"
+    return {
+        **chk,
+        "method": chk.get("method", ""),
+        "method_display": method,
+        "display": f"{status} / {method}" if method != "-" else status,
+    }
+
+def _v130_service_importance(name: str, image: str):
+    text = f"{name} {image}".lower()
+    order = [
+        "homepage", "jellyfin", "immich", "nextcloud", "portainer", "kavita",
+        "paperless", "stirling", "uptime-kuma", "glances", "n8n", "wud"
+    ]
+    for i, key in enumerate(order):
+        if key in text:
+            return i
+    return 99
+
+@router.get("/homelab/monitoring-center")
+def homelab_monitoring_center():
+    try:
+        try:
+            base = homelab_infra_summary_display()
+        except Exception:
+            try:
+                base = homelab_infra_summary_fast()
+            except Exception:
+                base = homelab_infra_summary()
+
+        for node in base.get("infra", []):
+            for key, chk in list(node.get("checks", {}).items()):
+                node["checks"][key] = _v130_clean_check(chk)
+
+        containers = list_docker_containers()
+        services = []
+        for c in containers:
+            name = c.get("name", "")
+            image = c.get("image", "")
+            try:
+                label, category = _hm_kind(name, image)
+                url = _hm_url(name, image, c.get("ports"))
+            except Exception:
+                try:
+                    category = classify_container(name, image)
+                except Exception:
+                    category = "other"
+                label = name
+                url = ""
+            score = _v130_service_importance(name, image)
+            if score < 99 or url:
+                services.append({
+                    **c,
+                    "label": label,
+                    "category": category,
+                    "url": url,
+                    "score": score,
+                    "healthy": c.get("state") == "running",
+                })
+        services.sort(key=lambda x: (x.get("score", 99), x.get("name", "")))
+
+        truenas = next((n for n in base.get("infra", []) if n.get("type") == "truenas"), None)
+        proxmox = next((n for n in base.get("infra", []) if n.get("type") == "proxmox"), None)
+        ubuntu = next((n for n in base.get("infra", []) if n.get("type") == "ubuntu"), None)
+
+        top_alerts = []
+        for w in base.get("warnings", []):
+            top_alerts.append({**w, "source": "infra"})
+        if base.get("docker", {}).get("stopped", 0) > 0 and base.get("ignored_count", 0) == 0:
+            top_alerts.append({"level": "warning", "message": f"Docker停止 {base['docker']['stopped']} 件", "source": "docker"})
+
+        return {
+            "overall": base.get("overall", "unknown"),
+            "top_alerts": top_alerts[:10],
+            "summary": {
+                "docker_health_rate": base.get("docker", {}).get("health_rate", 0),
+                "docker_running": base.get("docker", {}).get("running", 0),
+                "docker_total": base.get("docker", {}).get("total", 0),
+                "docker_stopped": base.get("docker", {}).get("stopped", 0),
+                "ignored_count": base.get("ignored_count", len(base.get("docker", {}).get("ignored", []))),
+                "warning_count": len(base.get("warnings", [])),
+                "ram_percent": base.get("host", {}).get("memory", {}).get("used_percent", 0),
+            },
+            "nodes": {
+                "ubuntu": ubuntu,
+                "truenas": truenas,
+                "proxmox": proxmox,
+            },
+            "host": base.get("host", {}),
+            "tailscale": base.get("tailscale", {}),
+            "docker": base.get("docker", {}),
+            "services": services,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/devices/{device_id}/monitors", response_model=List[schemas.DeviceMonitor])
 def list_device_monitors(device_id: int, db: Session = Depends(get_db)):
     ensure_monitor_table(db)

@@ -118,7 +118,7 @@ export default function InfrastructureMonitorPage(){
             <h4>🖥️ {node.name}</h4>
             <p>{node.ip}</p>
             {Object.entries(node.checks).map(([k,v]:any)=><div className="stable-check-row" key={k}>
-              <span>{mark(v.status)} {k}</span><small>{v.status} {v.response_ms?`${v.response_ms}ms`:''} {v.method_display?`/ ${v.method_display}`:''} {v.method_display?`/ ${v.method_display}`:''} {v.method?`/ ${v.method}`:''}</small>
+              <span>{mark(v.status)} {k}</span><small>{v.display || `${v.status}${v.method_display?` / ${v.method_display}`:''}`} {v.method_display?`/ ${v.method_display}`:''} {v.method?`/ ${v.method}`:''}</small>
             </div>)}
           </div>)}
         </div>
