@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.6.7 Home Lab Health
+MVP Ver1.6.8 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -154,3 +154,9 @@ MVP Ver1.6.7 Home Lab Health
 
 - アイコン数を大幅追加
 - アイコン選択UIを改善
+
+
+## Ver1.6.8
+
+- 機器詳細にアイコン選択UIを追加
+- 機器詳細・機器管理・構成図のアイコン同期を改善

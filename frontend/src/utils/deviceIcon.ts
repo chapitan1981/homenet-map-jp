@@ -62,8 +62,8 @@ export const DEVICE_ICON_OPTIONS: DeviceIconOption[] = [
 export function deviceIcon(icon?: string, deviceType?: string, name?: string): string {
   const raw = (icon || '').trim();
   if (raw && [...raw].length <= 3 && !/^[a-z0-9_-]+$/i.test(raw)) return raw;
-
   const key = (raw || deviceType || name || '').toLowerCase();
+
   const direct = DEVICE_ICON_OPTIONS.find(opt => opt.value === key);
   if (direct) return direct.emoji;
 
@@ -83,19 +83,15 @@ export function deviceIcon(icon?: string, deviceType?: string, name?: string): s
   if (key.includes('wifi') || key.includes('wi-fi') || key.includes('ap')) return '📶';
   if (key.includes('firewall')) return '🛡️';
   if (key.includes('vpn') || key.includes('tailscale')) return '🔐';
-
   if (key.includes('laptop') || key.includes('note')) return '💻';
   if (key.includes('desktop') || key.includes('ryzen') || key.includes('pc')) return '🖥️';
   if (key.includes('server') || key.includes('proxmox')) return '🖥️';
   if (key.includes('raspberry')) return '🍓';
-
   if (key.includes('nas') || key.includes('truenas')) return '🗄️';
   if (key.includes('hdd') || key.includes('storage')) return '💾';
   if (key.includes('ssd') || key.includes('nvme')) return '💽';
-
   if (key.includes('docker')) return '🐳';
   if (key.includes('container')) return '📦';
   if (key.includes('vm')) return '🧩';
-
   return '🖥️';
 }
