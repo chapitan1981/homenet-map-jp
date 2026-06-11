@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
+import { deviceIcon } from '../utils/deviceIcon';
 
 type Device = {
   id:number;
@@ -137,7 +138,7 @@ export default function DiagramPage(){
           <h4>🏠 {room}</h4>
           <div className="diagram-node-grid">
             {list.map(d=><div className="diagram-node-card" key={d.id}>
-              <strong>🖥️ {d.name}</strong>
+              <strong>{deviceIcon(d.icon, d.device_type || d.type, d.name)} {d.name}</strong>
               <small>{d.device_type || d.type || 'unknown'}</small>
             </div>)}
           </div>

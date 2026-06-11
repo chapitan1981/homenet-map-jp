@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client';
+import { deviceIcon } from '../utils/deviceIcon';
 import { Device } from '../types/device';
 import { Room } from '../types/room';
 import { getDeviceIcon } from '../types/icon';

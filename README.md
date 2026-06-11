@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.6.3 Home Lab Health
+MVP Ver1.6.4 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -131,3 +131,8 @@ MVP Ver1.6.3 Home Lab Health
 
 - 保管部屋/設置部屋の保存先を device_locations に変更
 - 機器一覧と構成図で部屋情報を反映
+
+
+## Ver1.6.4
+
+- 機器詳細のアイコン設定を機器管理・構成図へ反映

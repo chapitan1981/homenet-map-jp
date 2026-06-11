@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
+import { deviceIcon } from '../utils/deviceIcon';
 import { Device } from '../types/device';
 import { DEVICE_ICONS, getDeviceIcon } from '../types/icon';
 import { DEVICE_TEMPLATES } from '../types/templates';

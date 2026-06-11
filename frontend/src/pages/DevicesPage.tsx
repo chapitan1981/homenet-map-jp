@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { Link } from 'react-router-dom';
+import { deviceIcon } from '../utils/deviceIcon';
 
 type Device = {
   id:number;
@@ -181,7 +182,7 @@ export default function DevicesPage(){
         </thead>
         <tbody>
           {devices.map(d=><tr key={d.id}>
-            <td><Link className="text-link" to={`/devices/${d.id}`}>🖥️ {d.name}</Link></td>
+            <td><Link className="text-link" to={`/devices/${d.id}`}>{deviceIcon(d.icon, d.device_type || d.type, d.name)} {d.name}</Link></td>
             <td>{d.device_type || d.type || '-'}</td>
             <td>{roomName(d)}</td>
             <td>{[d.vendor,d.model].filter(Boolean).join(' / ') || '-'}</td>
