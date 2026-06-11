@@ -1641,3 +1641,19 @@ button:disabled {
 .device-form-grid select {
   min-height: 42px;
 }
+
+/* Ver1.6.7 icon picker expansion */
+.icon-picker { width: 100%; }
+.icon-picker-current { display: flex; gap: 8px; align-items: center; }
+.icon-picker-preview {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  background: #020617;
+  font-size: 22px;
+}
+.icon-picker select { flex: 1; min-height: 42px; }

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { Link } from 'react-router-dom';
-import { DEVICE_ICON_OPTIONS, deviceIcon } from '../utils/deviceIcon';
+import IconPicker from '../components/IconPicker';
+import { deviceIcon } from '../utils/deviceIcon';
 
 type Device = {
   id:number;
@@ -162,13 +163,10 @@ export default function DevicesPage(){
           <option value="">保管部屋/設置部屋：未設定</option>
           {rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}
         </select>
-        <select value={form.icon} onChange={e=>setForm({...form,icon:e.target.value})}>
-          <option value="">アイコンを選択：自動</option>
-          {DEVICE_ICON_OPTIONS.map(opt=><option key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</option>)}
-        </select>
         <input placeholder="メーカー" value={form.vendor} onChange={e=>setForm({...form,vendor:e.target.value})}/>
         <input placeholder="モデル" value={form.model} onChange={e=>setForm({...form,model:e.target.value})}/>
         <input placeholder="OS" value={form.os_name} onChange={e=>setForm({...form,os_name:e.target.value})}/>
+        <IconPicker value={form.icon} onChange={(icon)=>setForm({...form, icon})}/>
       </div>
       <textarea placeholder="説明" value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/>
 

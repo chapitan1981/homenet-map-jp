@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.6.6 Home Lab Health
+MVP Ver1.6.7 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -148,3 +148,9 @@ MVP Ver1.6.6 Home Lab Health
 
 - Ver1.6.5の重複importビルドエラーを修正
 - アイコン選択肢拡充と表示同期を安定化
+
+
+## Ver1.6.7
+
+- アイコン数を大幅追加
+- アイコン選択UIを改善
