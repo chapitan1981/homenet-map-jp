@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { Link } from 'react-router-dom';
 import { DEVICE_ICON_OPTIONS, deviceIcon } from '../utils/deviceIcon';
-import { deviceIcon } from '../utils/deviceIcon';
 
 type Device = {
   id:number;

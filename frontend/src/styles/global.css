@@ -1636,3 +1636,8 @@ button:disabled {
 .device-form-grid select {
   min-height: 42px;
 }
+
+/* Ver1.6.6 icon catalog fix */
+.device-form-grid select {
+  min-height: 42px;
+}

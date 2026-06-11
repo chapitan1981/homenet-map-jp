@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client';
-import { DEVICE_ICON_OPTIONS, deviceIcon } from '../utils/deviceIcon';
-import { deviceIcon } from '../utils/deviceIcon';
 import { Device } from '../types/device';
 import { DEVICE_ICONS, getDeviceIcon } from '../types/icon';
 import { DEVICE_TEMPLATES } from '../types/templates';
+import { DEVICE_ICON_OPTIONS, deviceIcon } from '../utils/deviceIcon';
 
 type Part = { id:number; device_id:number; part_type:string; vendor:string; model:string; spec:string; quantity:number; note:string };
 type Nic = { id:number; device_id:number; interface_name:string; ip_address:string; mac_address:string; network_type:string; is_primary:boolean; last_seen_at:string };
