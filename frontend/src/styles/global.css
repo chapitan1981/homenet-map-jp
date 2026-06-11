@@ -1631,3 +1631,8 @@ button:disabled {
   padding-top: 12px;
   border-top: 1px solid #334155;
 }
+
+/* Ver1.6.5 icon catalog */
+.device-form-grid select {
+  min-height: 42px;
+}

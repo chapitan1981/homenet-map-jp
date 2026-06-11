@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { Link } from 'react-router-dom';
+import { DEVICE_ICON_OPTIONS, deviceIcon } from '../utils/deviceIcon';
 import { deviceIcon } from '../utils/deviceIcon';
 
 type Device = {
@@ -148,7 +149,7 @@ export default function DevicesPage(){
       <p className="photo-hint">保管部屋/設置部屋を設定すると、構成図の部屋別表示でグループ化できます。</p>
       <div className="device-form-grid">
         <input placeholder="機器名 例: 5950Proxmox" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/>
-        <select value={form.device_type} onChange={e=>setForm({...form,device_type:e.target.value,icon:e.target.value})}>
+        <select value={form.device_type} onChange={e=>setForm({...form,device_type:e.target.value})}>
           <option value="server">server</option>
           <option value="pc">pc</option>
           <option value="network">network</option>
@@ -161,6 +162,10 @@ export default function DevicesPage(){
         <select value={form.room_id} onChange={e=>setForm({...form,room_id:e.target.value})}>
           <option value="">保管部屋/設置部屋：未設定</option>
           {rooms.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}
+        </select>
+        <select value={form.icon} onChange={e=>setForm({...form,icon:e.target.value})}>
+          <option value="">アイコンを選択：自動</option>
+          {DEVICE_ICON_OPTIONS.map(opt=><option key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</option>)}
         </select>
         <input placeholder="メーカー" value={form.vendor} onChange={e=>setForm({...form,vendor:e.target.value})}/>
         <input placeholder="モデル" value={form.model} onChange={e=>setForm({...form,model:e.target.value})}/>

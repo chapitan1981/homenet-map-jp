@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.6.4 Home Lab Health
+MVP Ver1.6.5 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -136,3 +136,9 @@ MVP Ver1.6.4 Home Lab Health
 ## Ver1.6.4
 
 - 機器詳細のアイコン設定を機器管理・構成図へ反映
+
+
+## Ver1.6.5
+
+- アイコン選択肢を拡充
+- 機器詳細/機器管理/構成図のアイコン表示を統一
