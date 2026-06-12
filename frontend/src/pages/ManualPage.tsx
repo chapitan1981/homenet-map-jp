@@ -200,6 +200,17 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           <p>監視一覧の「最終確認」列が別フィールドから描画されていたため、対応フィールドを追加してJST表示へ補正しました。</p>
         </section>
 
+      
+        <section id="v184" className="card">
+          <h3>Ver1.8.4追記：時刻仕様の根本修正</h3>
+          <p>フロント側の補正ではなく、Backend/API側で日時をJSTのタイムゾーン付きISO形式へ正規化する方針に変更しました。</p>
+          <ul>
+            <li>API日時は可能な限り <code>2026-06-12T20:35:00+09:00</code> の形式で返します。</li>
+            <li>古いUTCタイムゾーンなし日時はBackend側でJSTへ変換します。</li>
+            <li>確認用エンドポイント <code>/api/time-debug</code> を追加しました。</li>
+          </ul>
+        </section>
+
       </main>
     </div>
   </>;

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .database import Base, engine
 from .routers import rooms, devices, locations, interfaces, parts, diagrams, backup, tags, photos, racks, custom_fields, connections, placements, urls, monitors
+from app.timezone_utils import now_jst, normalize_datetime_fields
 
 Base.metadata.create_all(bind=engine)
 
@@ -40,8 +41,8 @@ app.include_router(racks.router, prefix="/api")
 def version():
     return {
         "name": "HomeNet Map JP",
-        "version": "1.8.3",
-        "build": "manual-v1.8.3-monitoring-last-check-direct-fix"
+        "version": "1.8.4",
+        "build": "manual-v1.8.4-timezone-backend-normalize"
     }
 
 app.include_router(custom_fields.router, prefix="/api")
@@ -53,3 +54,14 @@ app.include_router(placements.router, prefix="/api")
 app.include_router(urls.router, prefix="/api")
 
 app.include_router(monitors.router, prefix="/api")
+
+
+@app.get("/api/time-debug")
+def time_debug():
+    from datetime import datetime, timezone
+    from app.timezone_utils import now_jst
+    return {
+        "backend_jst": now_jst().isoformat(timespec="seconds"),
+        "backend_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "note": "All API timestamps should be timezone-aware JST after Ver1.8.4."
+    }

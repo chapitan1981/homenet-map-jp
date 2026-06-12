@@ -8,6 +8,7 @@ export function parseApiDate(value?: string | null): Date | null {
     return Number.isNaN(d.getTime()) ? null : d;
   }
 
+  // Legacy API value: UTC without timezone.
   if (/^\d{4}-\d{1,2}-\d{1,2}[T\s]\d{1,2}:\d{2}/.test(raw)) {
     const d = new Date(raw.replace(' ', 'T') + 'Z');
     return Number.isNaN(d.getTime()) ? null : d;

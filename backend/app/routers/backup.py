@@ -9,6 +9,7 @@ import tempfile
 import shutil
 from ..database import get_db
 from .. import models
+from app.timezone_utils import now_jst, to_jst_iso, normalize_datetime_fields
 
 router = APIRouter(prefix="/backup", tags=["backup"])
 
@@ -62,7 +63,7 @@ def build_backup_json(db: Session):
     return {
         "app": "HomeNet Map JP",
         "version": "0.7.0",
-        "created_at": datetime.now().isoformat(),
+        "created_at": now_jst().isoformat(),
         "tables": tables,
     }
 
@@ -92,7 +93,7 @@ def backup_summary(db: Session = Depends(get_db)):
 
 @router.get("/export-zip")
 def export_zip(db: Session = Depends(get_db)):
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = now_jst().strftime("%Y%m%d_%H%M%S")
     tmpdir = Path(tempfile.mkdtemp(prefix="homenet_backup_"))
     zip_path = tmpdir / f"homenet-map-jp-backup-{timestamp}.zip"
 
@@ -167,7 +168,7 @@ async def restore_zip(file: UploadFile = File(...)):
     if not file.filename.lower().endswith(".zip"):
         raise HTTPException(status_code=400, detail="ZIPファイルを選択してください")
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = now_jst().strftime("%Y%m%d_%H%M%S")
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     RESTORE_DIR.mkdir(parents=True, exist_ok=True)
 
