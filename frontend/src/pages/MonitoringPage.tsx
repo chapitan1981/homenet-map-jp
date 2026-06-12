@@ -50,6 +50,22 @@ const statusLabel = (status?: string | null, responseMs?: number) => {
 
 const statusClass = (status?: string | null, responseMs?: number) => normalizeStatus(status, responseMs);
 
+
+function monitorTimeV182(row: any): string {
+  return formatJst(
+    row?.last_checked_at ||
+    row?.last_checked ||
+    row?.last_check ||
+    row?.checked_at ||
+    row?.checkedAt ||
+    row?.lastChecked ||
+    row?.lastCheckedAt ||
+    row?.updated_at ||
+    row?.timestamp ||
+    ''
+  );
+}
+
 export default function MonitoringPage() {
   const [devices,setDevices]=useState<Device[]>([]);
   const [monitors,setMonitors]=useState<Monitor[]>([]);

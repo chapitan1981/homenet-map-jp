@@ -184,6 +184,16 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
+      
+        <section id="v182" className="card">
+          <h3>Ver1.8.2追記：監視一覧の時刻修正</h3>
+          <p>Ver1.8.1で未修正だった監視一覧の「最終確認」時刻をJST表示へ変換するよう修正しました。</p>
+          <ul>
+            <li>UTCのタイムゾーンなし日時をUTCとして解釈します。</li>
+            <li>監視一覧・インフラ監視の最終確認表示をAsia/Tokyoへ変換します。</li>
+          </ul>
+        </section>
+
       </main>
     </div>
   </>;
