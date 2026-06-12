@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { Device } from '../types/device';
 import { getDeviceIcon } from '../types/icon';
-import { formatJst, formatJstShort } from '../utils/dateTime';
+import { formatJst, monitoringLastCheckJst } from '../utils/dateTime';
 
 type DockerContainer = { id:string; name:string; image:string; state:string; status:string; ports:any[] };
 
@@ -64,6 +64,11 @@ function monitorTimeV182(row: any): string {
     row?.timestamp ||
     ''
   );
+}
+
+
+function monitorLastCheckCellV183(row: any): string {
+  return monitoringLastCheckJst(row);
 }
 
 export default function MonitoringPage() {

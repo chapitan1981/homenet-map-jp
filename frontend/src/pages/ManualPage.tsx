@@ -194,6 +194,12 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
+      
+        <section id="v183" className="card">
+          <h3>Ver1.8.3追記：監視一覧の最終確認を直接修正</h3>
+          <p>監視一覧の「最終確認」列が別フィールドから描画されていたため、対応フィールドを追加してJST表示へ補正しました。</p>
+        </section>
+
       </main>
     </div>
   </>;

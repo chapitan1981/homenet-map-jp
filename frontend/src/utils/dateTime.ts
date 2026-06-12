@@ -8,14 +8,11 @@ export function parseApiDate(value?: string | null): Date | null {
     return Number.isNaN(d.getTime()) ? null : d;
   }
 
-  // API UTC without timezone: 2026-06-12T10:05:06 or 2026-06-12 10:05:06
   if (/^\d{4}-\d{1,2}-\d{1,2}[T\s]\d{1,2}:\d{2}/.test(raw)) {
-    const normalized = raw.replace(' ', 'T') + 'Z';
-    const d = new Date(normalized);
+    const d = new Date(raw.replace(' ', 'T') + 'Z');
     return Number.isNaN(d.getTime()) ? null : d;
   }
 
-  // Also handle slash format returned by display layer: 2026/6/12 10:05:06
   if (/^\d{4}\/\d{1,2}\/\d{1,2}\s+\d{1,2}:\d{2}/.test(raw)) {
     const [datePart, timePart] = raw.split(/\s+/);
     const [y,m,d0] = datePart.split('/').map(Number);
@@ -43,15 +40,22 @@ export function formatJst(value?: string | null): string {
   }).format(d);
 }
 
-export function formatJstShort(value?: string | null): string {
-  const d = parseApiDate(value);
-  if (!d) return value || '-';
-  return new Intl.DateTimeFormat('ja-JP', {
-    timeZone: 'Asia/Tokyo',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(d);
+export function monitoringLastCheckJst(row: any): string {
+  const value =
+    row?.last_checked_at ??
+    row?.last_checked ??
+    row?.last_check ??
+    row?.checked_at ??
+    row?.checkedAt ??
+    row?.lastChecked ??
+    row?.lastCheckedAt ??
+    row?.last_result_at ??
+    row?.lastResultAt ??
+    row?.result_at ??
+    row?.resultAt ??
+    row?.updated_at ??
+    row?.updatedAt ??
+    row?.timestamp ??
+    '';
+  return formatJst(value);
 }

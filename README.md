@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.8.2 Home Lab Health
+MVP Ver1.8.3 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -183,4 +183,10 @@ MVP Ver1.8.2 Home Lab Health
 ## Ver1.8.2
 
 - 監視一覧の最終確認時刻のJST表示ズレを修正
+- HTMLマニュアル更新
+
+
+## Ver1.8.3
+
+- 監視一覧の最終確認時刻を再修正
 - HTMLマニュアル更新
