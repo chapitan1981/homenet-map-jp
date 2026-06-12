@@ -1657,3 +1657,61 @@ button:disabled {
   font-size: 22px;
 }
 .icon-picker select { flex: 1; min-height: 42px; }
+
+/* Ver1.8.0 diagram filter enhancement */
+.diagram-filter-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.diagram-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.diagram-summary div {
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 12px;
+  background: #020617;
+}
+.diagram-summary span,
+.diagram-summary strong {
+  display: block;
+}
+.diagram-summary span {
+  color: #bfdbfe;
+}
+.diagram-summary strong {
+  font-size: 24px;
+}
+.diagram-room-grid {
+  display: grid;
+  gap: 12px;
+}
+.diagram-room-card {
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(15, 23, 42, .55);
+}
+.diagram-node-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.diagram-node-card {
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 12px;
+  background: #020617;
+}
+.diagram-node-card strong,
+.diagram-node-card small {
+  display: block;
+}
+.diagram-node-card small {
+  color: #94a3b8;
+  margin-top: 4px;
+}

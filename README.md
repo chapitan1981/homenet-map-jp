@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.6.9 Home Lab Health
+MVP Ver1.8.1 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -160,3 +160,21 @@ MVP Ver1.6.9 Home Lab Health
 
 - Ver1.6.8で消えた機器詳細項目を復旧
 - Ver1.6.7ベースに戻して安定化
+
+
+## Ver1.7.0
+
+- データ保護画面を強化
+- 更新前バックアップ手順を明確化
+
+## Ver1.8.0
+
+- 構成図フィルタを強化
+- 部屋別、機器種別別、クイックフィルタ、キーワード検索に対応
+- HTMLマニュアル更新
+
+
+## Ver1.8.1
+
+- UTC時刻をJSTとして誤解する表示ズレを修正
+- HTMLマニュアル更新

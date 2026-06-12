@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import { formatJst, formatJstShort } from '../utils/dateTime';
 
 type BackupSummary = {
   version:string;
@@ -119,7 +120,7 @@ export default function BackupPage() {
         {inspect&&<div className="restore-inspect-box">
           <h4>確認結果：{inspect.filename}</h4>
           <p>バックアップJSON: {inspect.has_backup_json ? 'あり' : 'なし'} / DB: {inspect.has_db ? 'あり' : 'なし'} / 写真: {inspect.uploads_count}件</p>
-          <p>バックアップ版: {inspect.version || '-'} / 作成日時: {inspect.created_at || '-'}</p>
+          <p>バックアップ版: {inspect.version || '-'} / 作成日時: {formatJst(inspect.created_at)}</p>
           <div className="restore-warning">
             <strong>復元前確認</strong>
             <p>復元を実行すると現在のDBと写真は安全バックアップ後に置き換えられます。復元後はUbuntu側で再起動してください。</p>

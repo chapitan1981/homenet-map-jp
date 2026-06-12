@@ -159,6 +159,31 @@ git reset --hard origin/main
 docker compose down
 docker compose up -d --build --force-recreate`}</code></pre>
         </section>
+      
+        <section id="v180" className="card">
+          <h3>Ver1.8.0追記：データ保護と構成図フィルタ</h3>
+          <p>Ver1.8.0では、データ保護画面と構成図の表示切替を強化しました。</p>
+          <ul>
+            <li>データ保護画面で登録部屋・登録機器・接続情報・監視設定の件数を確認できます。</li>
+            <li>構成図で全体表示、部屋別表示、機器種別別表示を切り替えできます。</li>
+            <li>クイックフィルタでネットワーク機器のみ、NAS/ストレージのみ、Proxmox/VM/サーバー系、PC系、Docker/Ubuntu系を表示できます。</li>
+            <li>更新前は必ずUbuntu側で <code>backend/app/data</code> をバックアップしてください。</li>
+          </ul>
+          <pre><code>{`cd ~/homenet-map-jp
+cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></pre>
+        </section>
+
+      
+        <section id="v181" className="card">
+          <h3>Ver1.8.1追記：時刻表示の修正</h3>
+          <p>APIがUTC時刻をタイムゾーン情報なしで返す場合、ブラウザがJSTとして解釈して9時間ずれる問題を修正しました。</p>
+          <ul>
+            <li>タイムゾーンなしのISO日時はUTCとして扱います。</li>
+            <li>画面表示時にAsia/Tokyoへ変換します。</li>
+            <li>サーバー/コンテナ時刻がJSTで正常でも、アプリ表示だけずれる問題に対応します。</li>
+          </ul>
+        </section>
+
       </main>
     </div>
   </>;
