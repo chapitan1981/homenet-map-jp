@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.8.4 Home Lab Health
+MVP Ver1.8.5 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -192,8 +192,8 @@ MVP Ver1.8.4 Home Lab Health
 - HTMLマニュアル更新
 
 
-## Ver1.8.4
+## Ver1.8.5
 
-- Backend/API側で時刻をJST ISO形式に正規化
-- /api/time-debug 追加
+- 監視一覧の最終確認表示を直接修正
+- Ver1.8.4のBackend起動エラーを回避し安定版ベースへ復帰
 - HTMLマニュアル更新

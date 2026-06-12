@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { Device } from '../types/device';
 import { getDeviceIcon } from '../types/icon';
-import { formatJst, monitoringLastCheckJst } from '../utils/dateTime';
+import { formatJst } from '../utils/dateTime';
 
 type DockerContainer = { id:string; name:string; image:string; state:string; status:string; ports:any[] };
 
@@ -290,7 +290,7 @@ export default function MonitoringPage() {
               <td>{m.monitor_type}</td>
               <td>{m.monitor_type==='http'?<a className="text-link" href={m.target} target="_blank" rel="noreferrer">{m.target}</a>:m.target}</td>
               <td>{m.response_ms ? `${m.response_ms} ms` : '-'}</td>
-              <td>{m.last_checked_at ? new Date(m.last_checked_at).toLocaleString('ja-JP') : '-'}</td>
+              <td>{formatJst(m.last_checked_at)}</td>
               <td>{m.last_error ? <small className={cls==='online'?'hint-text':'error-text'}>{m.last_error}</small> : '-'}</td>
               <td>
                 <button className="small-button" onClick={()=>checkOne(m.id)}>確認</button>

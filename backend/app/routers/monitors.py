@@ -9,7 +9,6 @@ import urllib.request
 import socket
 from ..database import get_db, engine
 from .. import models, schemas
-from app.timezone_utils import now_jst, to_jst_iso, normalize_datetime_fields
 
 router = APIRouter(tags=["monitors"])
 
@@ -224,7 +223,7 @@ def register_docker_monitors(device_id: int, db: Session = Depends(get_db)):
         db.add(item)
         created += 1
     db.commit()
-    return normalize_datetime_fields({"created": created, "skipped": skipped, "total": len(containers)})
+    return {"created": created, "skipped": skipped, "total": len(containers)}
 
 
 
@@ -474,13 +473,13 @@ def _tcp_check(host: str, port: int, timeout: float = 1.5):
     start = time.time()
     try:
         with socket.create_connection((host, port), timeout=timeout):
-            return normalize_datetime_fields({"status": "online", "response_ms": int((time.time() - start) * 1000), "error": ""})
+            return {"status": "online", "response_ms": int((time.time() - start) * 1000), "error": ""}
     except Exception as e:
-        return normalize_datetime_fields({"status": "offline", "response_ms": 0, "error": str(e)})
+        return {"status": "offline", "response_ms": 0, "error": str(e)}
 
 def _ping_check(host: str):
     status, ms, err = run_ping(host)
-    return normalize_datetime_fields({"status": status, "response_ms": ms, "error": err})
+    return {"status": status, "response_ms": ms, "error": err}
 
 def _disk_info():
     import shutil
@@ -507,7 +506,7 @@ def _tailscale_info():
     try:
         r = subprocess.run(["tailscale", "status", "--json"], capture_output=True, text=True, timeout=3)
         if r.returncode != 0:
-            return normalize_datetime_fields({"available": False, "status": "unknown", "error": r.stderr.strip() or "tailscale command failed"})
+            return {"available": False, "status": "unknown", "error": r.stderr.strip() or "tailscale command failed"}
         data = json.loads(r.stdout)
         self_node = data.get("Self", {})
         return {
@@ -519,9 +518,9 @@ def _tailscale_info():
             "subnet_routes": self_node.get("AllowedIPs", []),
         }
     except FileNotFoundError:
-        return normalize_datetime_fields({"available": False, "status": "not_installed", "error": "tailscale command not found in container"})
+        return {"available": False, "status": "not_installed", "error": "tailscale command not found in container"}
     except Exception as e:
-        return normalize_datetime_fields({"available": False, "status": "error", "error": str(e)})
+        return {"available": False, "status": "error", "error": str(e)}
 
 @router.get("/homelab/stable-summary")
 def homelab_stable_summary():
@@ -615,13 +614,13 @@ def _v110_tcp(host: str, port: int, timeout: float = 1.5):
     start = time.time()
     try:
         with socket.create_connection((host, port), timeout=timeout):
-            return normalize_datetime_fields({"status": "online", "response_ms": int((time.time() - start) * 1000), "error": ""})
+            return {"status": "online", "response_ms": int((time.time() - start) * 1000), "error": ""}
     except Exception as e:
-        return normalize_datetime_fields({"status": "offline", "response_ms": 0, "error": str(e)})
+        return {"status": "offline", "response_ms": 0, "error": str(e)}
 
 def _v110_ping(host: str):
     status, ms, err = run_ping(host)
-    return normalize_datetime_fields({"status": status, "response_ms": ms, "error": err})
+    return {"status": status, "response_ms": ms, "error": err}
 
 def _v110_host():
     import os, shutil, platform
@@ -662,14 +661,14 @@ def _v110_tailscale():
     try:
         r = subprocess.run(["tailscale", "status", "--json"], capture_output=True, text=True, timeout=3)
         if r.returncode != 0:
-            return normalize_datetime_fields({"available": False, "status": "unavailable", "error": r.stderr.strip() or "tailscale command failed"})
+            return {"available": False, "status": "unavailable", "error": r.stderr.strip() or "tailscale command failed"}
         data = json.loads(r.stdout)
         self_node = data.get("Self", {})
-        return normalize_datetime_fields({"available": True, "status": "online" if self_node.get("Online") else "offline", "backend_state": data.get("BackendState",""), "hostname": self_node.get("HostName",""), "dns_name": self_node.get("DNSName",""), "tailscale_ips": self_node.get("TailscaleIPs", []), "os": self_node.get("OS","")})
+        return {"available": True, "status": "online" if self_node.get("Online") else "offline", "backend_state": data.get("BackendState",""), "hostname": self_node.get("HostName",""), "dns_name": self_node.get("DNSName",""), "tailscale_ips": self_node.get("TailscaleIPs", []), "os": self_node.get("OS","")}
     except FileNotFoundError:
-        return normalize_datetime_fields({"available": False, "status": "not_installed_in_container", "error": "tailscale command not found in backend container"})
+        return {"available": False, "status": "not_installed_in_container", "error": "tailscale command not found in backend container"}
     except Exception as e:
-        return normalize_datetime_fields({"available": False, "status": "error", "error": str(e)})
+        return {"available": False, "status": "error", "error": str(e)}
 
 def _v110_category(name: str, image: str):
     try:
@@ -711,7 +710,7 @@ def homelab_infra_summary():
             for cname, chk in node["checks"].items():
                 if chk.get("status") not in {"online", "ok"}:
                     warnings.append({"level":"warning", "message": f"{node['name']} {cname} 未疎通"})
-        return normalize_datetime_fields({"overall": "ok" if not warnings else "warning", "host": host, "tailscale": _v110_tailscale(), "docker": {"total": total, "running": running, "stopped": total-running, "health_rate": round((running/total)*100) if total else 0, "categories": categories, "unhealthy": unhealthy}), "infra": infra, "warnings": warnings[:30], "fixed_ips": ips}
+        return {"overall": "ok" if not warnings else "warning", "host": host, "tailscale": _v110_tailscale(), "docker": {"total": total, "running": running, "stopped": total-running, "health_rate": round((running/total)*100) if total else 0, "categories": categories, "unhealthy": unhealthy}, "infra": infra, "warnings": warnings[:30], "fixed_ips": ips}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -723,8 +722,8 @@ def _v120_local_service_check(service_name: str, host_port: int, container_name:
         for c in containers:
             if container_name and c.get("name") == container_name:
                 if c.get("state") == "running":
-                    return normalize_datetime_fields({"status": "online", "response_ms": 0, "error": "", "method": "docker-container-running"})
-                return normalize_datetime_fields({"status": "offline", "response_ms": 0, "error": c.get("status", ""), "method": "docker-container-state"})
+                    return {"status": "online", "response_ms": 0, "error": "", "method": "docker-container-running"}
+                return {"status": "offline", "response_ms": 0, "error": c.get("status", ""), "method": "docker-container-state"}
     except Exception:
         pass
 
@@ -748,13 +747,13 @@ def _v120_local_service_check(service_name: str, host_port: int, container_name:
             r["method"] = f"tcp:{host}:{host_port}"
             return r
 
-    return normalize_datetime_fields({"status": "offline", "response_ms": 0, "error": "all checks failed", "method": "fallback-all-failed"})
+    return {"status": "offline", "response_ms": 0, "error": "all checks failed", "method": "fallback-all-failed"}
 
 def _v120_tailscale_display():
     try:
         info = _v110_tailscale() if "_v110_tailscale" in globals() else {}
         if info.get("available"):
-            return normalize_datetime_fields({**info, "display_status": "online", "display_label": "Tailscale Online"})
+            return {**info, "display_status": "online", "display_label": "Tailscale Online"}
         return {
             **info,
             "available": False,
@@ -837,20 +836,20 @@ def _v121_fast_tcp(host: str, port: int, timeout: float = 0.45):
     start = time.time()
     try:
         with socket.create_connection((host, port), timeout=timeout):
-            return normalize_datetime_fields({"status": "online", "response_ms": int((time.time() - start) * 1000), "error": "", "method": "fast-tcp"})
+            return {"status": "online", "response_ms": int((time.time() - start) * 1000), "error": "", "method": "fast-tcp"}
     except Exception as e:
-        return normalize_datetime_fields({"status": "offline", "response_ms": 0, "error": str(e), "method": "fast-tcp"})
+        return {"status": "offline", "response_ms": 0, "error": str(e), "method": "fast-tcp"}
 
 def _v121_container_state(container_name: str):
     try:
         for c in list_docker_containers():
             if c.get("name") == container_name:
                 if c.get("state") == "running":
-                    return normalize_datetime_fields({"status": "online", "response_ms": 0, "error": "", "method": "docker-container-running"})
-                return normalize_datetime_fields({"status": "offline", "response_ms": 0, "error": c.get("status", ""), "method": "docker-container-state"})
+                    return {"status": "online", "response_ms": 0, "error": "", "method": "docker-container-running"}
+                return {"status": "offline", "response_ms": 0, "error": c.get("status", ""), "method": "docker-container-state"}
     except Exception as e:
-        return normalize_datetime_fields({"status": "unknown", "response_ms": 0, "error": str(e), "method": "docker-container-error"})
-    return normalize_datetime_fields({"status": "offline", "response_ms": 0, "error": "container not found", "method": "docker-container-not-found"})
+        return {"status": "unknown", "response_ms": 0, "error": str(e), "method": "docker-container-error"}
+    return {"status": "offline", "response_ms": 0, "error": "container not found", "method": "docker-container-not-found"}
 
 def _v121_host_minimal():
     try:
@@ -859,7 +858,7 @@ def _v121_host_minimal():
         try:
             return _host_metrics_v110()
         except Exception as e:
-            return normalize_datetime_fields({"hostname": "unknown", "memory": {}), "disk": [], "error": str(e)}
+            return {"hostname": "unknown", "memory": {}, "disk": [], "error": str(e)}
 
 def _v121_tailscale_safe():
     return {
@@ -949,7 +948,7 @@ def _v122_normalize_check(check):
         method_display = "TCP疎通"
     elif method_display.startswith("docker-dns:"):
         method_display = "Docker内部疎通"
-    return normalize_datetime_fields({**check, "method_display": method_display})
+    return {**check, "method_display": method_display}
 
 def _v122_is_ignored_container(name: str):
     # 手動で停止している管理用/旧コンテナは警告対象から外す
@@ -1225,7 +1224,7 @@ def delete_monitor(monitor_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Monitor not found")
     db.delete(item)
     db.commit()
-    return normalize_datetime_fields({"success": True})
+    return {"success": True}
 
 @router.post("/monitors/{monitor_id}/check", response_model=schemas.DeviceMonitor)
 def check_one_monitor(monitor_id: int, db: Session = Depends(get_db)):
@@ -1251,4 +1250,4 @@ def check_all_monitors(db: Session = Depends(get_db)):
         item.last_checked_at = datetime.now(timezone.utc)
         results.append({"id": item.id, "status": status, "response_ms": ms})
     db.commit()
-    return normalize_datetime_fields({"checked": len(results), "results": results})
+    return {"checked": len(results), "results": results}

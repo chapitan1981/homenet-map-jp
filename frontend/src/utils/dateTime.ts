@@ -8,7 +8,8 @@ export function parseApiDate(value?: string | null): Date | null {
     return Number.isNaN(d.getTime()) ? null : d;
   }
 
-  // Legacy API value: UTC without timezone.
+  // SQLite/SQLAlchemy often returns UTC without timezone.
+  // Treat timezone-less values as UTC, then display in JST.
   if (/^\d{4}-\d{1,2}-\d{1,2}[T\s]\d{1,2}:\d{2}/.test(raw)) {
     const d = new Date(raw.replace(' ', 'T') + 'Z');
     return Number.isNaN(d.getTime()) ? null : d;
@@ -39,24 +40,4 @@ export function formatJst(value?: string | null): string {
     second: '2-digit',
     hour12: false,
   }).format(d);
-}
-
-export function monitoringLastCheckJst(row: any): string {
-  const value =
-    row?.last_checked_at ??
-    row?.last_checked ??
-    row?.last_check ??
-    row?.checked_at ??
-    row?.checkedAt ??
-    row?.lastChecked ??
-    row?.lastCheckedAt ??
-    row?.last_result_at ??
-    row?.lastResultAt ??
-    row?.result_at ??
-    row?.resultAt ??
-    row?.updated_at ??
-    row?.updatedAt ??
-    row?.timestamp ??
-    '';
-  return formatJst(value);
 }
