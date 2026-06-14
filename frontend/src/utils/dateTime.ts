@@ -8,13 +8,13 @@ export function parseApiDate(value?: string | null): Date | null {
     return Number.isNaN(d.getTime()) ? null : d;
   }
 
-  // SQLite/SQLAlchemy often returns UTC without timezone.
-  // Treat timezone-less values as UTC, then display in JST.
+  // Legacy DB/API value: UTC without timezone.
   if (/^\d{4}-\d{1,2}-\d{1,2}[T\s]\d{1,2}:\d{2}/.test(raw)) {
     const d = new Date(raw.replace(' ', 'T') + 'Z');
     return Number.isNaN(d.getTime()) ? null : d;
   }
 
+  // Legacy display-like value: 2026/6/12 12:34:56
   if (/^\d{4}\/\d{1,2}\/\d{1,2}\s+\d{1,2}:\d{2}/.test(raw)) {
     const [datePart, timePart] = raw.split(/\s+/);
     const [y,m,d0] = datePart.split('/').map(Number);
@@ -38,6 +38,19 @@ export function formatJst(value?: string | null): string {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
+    hour12: false,
+  }).format(d);
+}
+
+export function formatJstShort(value?: string | null): string {
+  const d = parseApiDate(value);
+  if (!d) return value || '-';
+  return new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
     hour12: false,
   }).format(d);
 }

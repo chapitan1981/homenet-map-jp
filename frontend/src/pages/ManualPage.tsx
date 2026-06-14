@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { formatJst, formatJstShort } from '../utils/dateTime';
 
 export default function ManualPage(){
   return <>
@@ -209,6 +210,30 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
             <li>画面上ではAsia/Tokyoへ変換して表示します。</li>
             <li>Ver1.8.4のBackend構造変更は起動エラーのため採用せず、安定版ベースへ戻しています。</li>
           </ul>
+        </section>
+
+      
+        <section id="v186" className="card">
+          <h3>Ver1.8.6追記：全体の時刻表示を共通化</h3>
+          <p>監視一覧だけでなく、バックアップ、機器詳細、写真、更新日時などの共通時刻表示をJST変換関数へ統一しました。</p>
+          <ul>
+            <li>タイムゾーンなしのUTC日時はUTCとして扱います。</li>
+            <li>画面表示時はAsia/Tokyoへ変換します。</li>
+            <li>今後、時刻表示を追加する場合は <code>formatJst()</code> を使います。</li>
+          </ul>
+        </section>
+
+      
+        <section id="v190" className="card">
+          <h3>Ver1.9.0追記：ネットワークスキャン</h3>
+          <p>指定したCIDR範囲をスキャンし、応答がある未登録機器を候補として表示できます。</p>
+          <ul>
+            <li>例: <code>192.168.0.0/24</code></li>
+            <li>最大256ホストまでを対象にします。</li>
+            <li>Pingと指定TCPポートの疎通確認を行います。</li>
+            <li>未登録機器は任意で機器管理へ追加できます。</li>
+          </ul>
+          <p>注意: 自分が管理するネットワーク以外をスキャンしないでください。</p>
         </section>
 
       </main>

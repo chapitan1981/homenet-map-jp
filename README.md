@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.8.5 Home Lab Health
+MVP Ver1.9.0 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -196,4 +196,17 @@ MVP Ver1.8.5 Home Lab Health
 
 - 監視一覧の最終確認表示を直接修正
 - Ver1.8.4のBackend起動エラーを回避し安定版ベースへ復帰
+- HTMLマニュアル更新
+
+
+## Ver1.8.6
+
+- 全体の時刻表示を共通JST変換へ統一
+- HTMLマニュアル更新
+
+
+## Ver1.9.0
+
+- ネットワークスキャン機能追加
+- 未登録機器を任意で機器管理へ追加可能
 - HTMLマニュアル更新

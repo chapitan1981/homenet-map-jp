@@ -18,6 +18,7 @@ import DataProtectionPage from './pages/DataProtectionPage';
 import ManualPage from './pages/ManualPage';
 import SettingsPage from './pages/SettingsPage';
 import RackPage from './pages/RackPage';
+import NetworkScanPage from './pages/NetworkScanPage';
 
 export default function App() {
   return (
@@ -43,7 +44,8 @@ export default function App() {
           <Route path="/manual" element={<ManualPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
-      </Routes>
+                <Route path="/network-scan" element={<NetworkScanPage />} />
+        </Routes>
     </BrowserRouter>
   );
 }

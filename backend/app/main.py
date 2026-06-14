@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from .database import Base, engine
-from .routers import rooms, devices, locations, interfaces, parts, diagrams, backup, tags, photos, racks, custom_fields, connections, placements, urls, monitors
+from .routers import network_scan, rooms, devices, locations, interfaces, parts, diagrams, backup, tags, photos, racks, custom_fields, connections, placements, urls, monitors
 
 Base.metadata.create_all(bind=engine)
 
@@ -40,8 +40,8 @@ app.include_router(racks.router, prefix="/api")
 def version():
     return {
         "name": "HomeNet Map JP",
-        "version": "1.8.5",
-        "build": "manual-v1.8.5-monitoring-display-direct-hotfix"
+        "version": "1.9.0",
+        "build": "manual-v1.9.0-network-scanner"
     }
 
 app.include_router(custom_fields.router, prefix="/api")
@@ -53,6 +53,7 @@ app.include_router(placements.router, prefix="/api")
 app.include_router(urls.router, prefix="/api")
 
 app.include_router(monitors.router, prefix="/api")
+app.include_router(network_scan.router, prefix="/api")
 
 
 @app.get("/api/time-debug")

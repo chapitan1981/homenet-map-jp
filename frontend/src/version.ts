@@ -1,3 +1,3 @@
-export const APP_VERSION = '1.8.5';
-export const APP_BUILD = 'manual-v1.8.5-monitoring-display-direct-hotfix';
+export const APP_VERSION = '1.9.0';
+export const APP_BUILD = 'manual-v1.9.0-network-scanner';
 export const APP_NAME = 'HomeNet Map JP';
