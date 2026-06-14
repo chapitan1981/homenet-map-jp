@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.9.1 Home Lab Health
+MVP Ver1.9.2 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -212,7 +212,8 @@ MVP Ver1.9.1 Home Lab Health
 - HTMLマニュアル更新
 
 
-## Ver1.9.1
+## Ver1.9.2
 
-- ネットワークスキャンの左メニュー表示を修正
+- 左メニュー構造を復旧
+- ネットワークスキャンを元のメニュー構造へ追加
 - HTMLマニュアル更新

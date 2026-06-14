@@ -237,12 +237,13 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
         </section>
 
       
-        <section id="v191" className="card">
-          <h3>Ver1.9.1追記：ネットワークスキャンメニュー修正</h3>
-          <p>Ver1.9.0で左メニューに「ネットワークスキャン」が表示されない問題を修正しました。</p>
+        <section id="v192" className="card">
+          <h3>Ver1.9.2追記：左メニュー復旧</h3>
+          <p>Ver1.9.1で左メニューのCSS構造が崩れたため、元のSidebar構造へ戻し、ネットワークスキャンだけを追加しました。</p>
           <ul>
-            <li>左メニューから「ネットワークスキャン」を開けます。</li>
-            <li>直接URLは <code>/network-scan</code> です。</li>
+            <li>左メニューの縦表示を復旧しました。</li>
+            <li>「ネットワークスキャン」を自動検出の下に表示します。</li>
+            <li>URLは <code>/network-scan</code> です。</li>
           </ul>
         </section>
 

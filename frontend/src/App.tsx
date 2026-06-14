@@ -33,6 +33,7 @@ export default function App() {
           <Route path="/infra" element={<InfrastructureMonitorPage />} />
           <Route path="/stable" element={<StableDashboardPage />} />
           <Route path="/discovery" element={<AutoDiscoveryPage />} />
+          <Route path="/network-scan" element={<NetworkScanPage />} />
           <Route path="/homelab" element={<HomeLabDashboardPage />} />
           <Route path="/health" element={<HomeLabHealthPage />} />
           <Route path="/monitoring" element={<MonitoringPage />} />
@@ -44,8 +45,7 @@ export default function App() {
           <Route path="/manual" element={<ManualPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
-                  <Route path="/network-scan" element={<NetworkScanPage />} />
-        </Routes>
+</Routes>
     </BrowserRouter>
   );
 }
