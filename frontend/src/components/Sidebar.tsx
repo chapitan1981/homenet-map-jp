@@ -1,33 +1,40 @@
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { APP_VERSION, APP_BUILD } from '../version';
 
-export default function Sidebar() {
-  return (
-    <aside className="sidebar">
-      <h1>HomeNet Map JP</h1>
-      <nav className="nav">
-        <Link to="/">ダッシュボード</Link>
-        <Link to="/rooms">部屋管理</Link>
-        <Link to="/devices">機器管理</Link>
-        <Link to="/center">統合監視</Link>
-        <Link to="/infra">インフラ監視</Link>
-        <Link to="/stable">Stable</Link>
-        <Link to="/discovery">自動検出</Link>
-        <Link to="/homelab">ホームラボ</Link>
-        <Link to="/health">健康状態</Link>
-        <Link to="/monitoring">監視</Link>
-        <Link to="/diagram">構成図</Link>
-        <Link to="/room-layout">部屋レイアウト</Link>
-        <Link to="/backup">バックアップ</Link>
-        <Link to="/racks">ラックビュー</Link>
-        <Link to="/data-protection">データ保護</Link>
-        <Link to="/manual">マニュアル</Link>
-        <Link to="/settings">設定</Link>
-      </nav>
-    <div className="sidebar-version">
-          <div>Ver {APP_VERSION}</div>
-          <div>{APP_BUILD}</div>
-        </div>
-      </aside>
-  );
+const navItems = [
+  { path: '/', label: 'ダッシュボード' },
+  { path: '/rooms', label: '部屋管理' },
+  { path: '/devices', label: '機器管理' },
+  { path: '/monitor-center', label: '統合監視' },
+  { path: '/infrastructure', label: 'インフラ監視' },
+  { path: '/stable', label: 'Stable' },
+  { path: '/auto-discovery', label: '自動検出' },
+  { path: '/network-scan', label: 'ネットワークスキャン' },
+  { path: '/homelab', label: 'ホームラボ' },
+  { path: '/health', label: '健康状態' },
+  { path: '/monitoring', label: '監視' },
+  { path: '/diagram', label: '構成図' },
+  { path: '/room-layout', label: '部屋レイアウト' },
+  { path: '/backup', label: 'バックアップ' },
+  { path: '/rack', label: 'ラックビュー' },
+  { path: '/data-protection', label: 'データ保護' },
+  { path: '/manual', label: 'マニュアル' },
+  { path: '/settings', label: '設定' },
+];
+
+export default function Sidebar(){
+  return <aside className="sidebar">
+    <h1>HomeNet Map JP</h1>
+    <nav>
+      {navItems.map(item => (
+        <NavLink key={item.path} to={item.path} className={({isActive})=>isActive?'active':''}>
+          {item.label}
+        </NavLink>
+      ))}
+    </nav>
+    <div className="version-box">
+      <div>Ver {APP_VERSION}</div>
+      <small>{APP_BUILD}</small>
+    </div>
+  </aside>;
 }

@@ -44,7 +44,7 @@ export default function App() {
           <Route path="/manual" element={<ManualPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
-                <Route path="/network-scan" element={<NetworkScanPage />} />
+                  <Route path="/network-scan" element={<NetworkScanPage />} />
         </Routes>
     </BrowserRouter>
   );

@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.9.0 Home Lab Health
+MVP Ver1.9.1 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -209,4 +209,10 @@ MVP Ver1.9.0 Home Lab Health
 
 - ネットワークスキャン機能追加
 - 未登録機器を任意で機器管理へ追加可能
+- HTMLマニュアル更新
+
+
+## Ver1.9.1
+
+- ネットワークスキャンの左メニュー表示を修正
 - HTMLマニュアル更新

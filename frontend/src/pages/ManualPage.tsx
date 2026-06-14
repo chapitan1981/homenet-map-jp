@@ -236,6 +236,16 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           <p>注意: 自分が管理するネットワーク以外をスキャンしないでください。</p>
         </section>
 
+      
+        <section id="v191" className="card">
+          <h3>Ver1.9.1追記：ネットワークスキャンメニュー修正</h3>
+          <p>Ver1.9.0で左メニューに「ネットワークスキャン」が表示されない問題を修正しました。</p>
+          <ul>
+            <li>左メニューから「ネットワークスキャン」を開けます。</li>
+            <li>直接URLは <code>/network-scan</code> です。</li>
+          </ul>
+        </section>
+
       </main>
     </div>
   </>;
