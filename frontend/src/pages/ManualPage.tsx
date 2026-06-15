@@ -301,6 +301,17 @@ python3 scripts/host_network_scan.py --cidr 192.168.0.0/24 --out backend/app/dat
 cat backend/app/data/network_scan_result.json | jq '.count, .mac_count, .arp_count'`}</code></pre>
         </section>
 
+      
+        <section id="v200rc1" className="card">
+          <h3>Ver2.0.0-rc1追記：UI整理とネットワークスキャン削除</h3>
+          <p>アプリの目的を「登録・整理・可視化」に戻すため、ネットワークスキャン機能を削除しました。ネットワーク調査はOpenClawなど外部診断ツールで行い、HomeNet Map JPでは確定した情報を手動登録する運用を推奨します。</p>
+          <ul>
+            <li>左メニューを「資産管理」「構成管理」「監視」「運用」「ヘルプ」に整理しました。</li>
+            <li>ネットワークスキャン画面、Backend API、ホストスキャンスクリプトを削除しました。</li>
+            <li>機器詳細にタブ型ショートカットを追加しました。</li>
+          </ul>
+        </section>
+
       </main>
     </div>
   </>;

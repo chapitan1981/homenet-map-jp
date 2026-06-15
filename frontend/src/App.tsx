@@ -18,7 +18,6 @@ import DataProtectionPage from './pages/DataProtectionPage';
 import ManualPage from './pages/ManualPage';
 import SettingsPage from './pages/SettingsPage';
 import RackPage from './pages/RackPage';
-import NetworkScanPage from './pages/NetworkScanPage';
 
 export default function App() {
   return (
@@ -33,7 +32,6 @@ export default function App() {
           <Route path="/infra" element={<InfrastructureMonitorPage />} />
           <Route path="/stable" element={<StableDashboardPage />} />
           <Route path="/discovery" element={<AutoDiscoveryPage />} />
-          <Route path="/network-scan" element={<NetworkScanPage />} />
           <Route path="/homelab" element={<HomeLabDashboardPage />} />
           <Route path="/health" element={<HomeLabHealthPage />} />
           <Route path="/monitoring" element={<MonitoringPage />} />

@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.9.7 Home Lab Health
+MVP Ver2.0.0-rc1 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -251,3 +251,11 @@ MVP Ver1.9.7 Home Lab Health
 
 - True Host Scanner Fix
 - Ubuntuホストで作成したJSONをアプリが読み込む方式へ変更
+
+## Ver2.0.0-rc1
+
+- UI/メニュー構成を再整理
+- ネットワークスキャン機能を削除
+- 機器詳細にタブ型ショートカットを追加
+- HomeNet Map JPの役割を「登録・整理・可視化」に整理
+- HTMLマニュアル更新

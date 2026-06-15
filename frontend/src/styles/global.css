@@ -1726,3 +1726,12 @@ button:disabled {
 
 /* Ver1.9.4 network scan mac duplicate */
 .table code { font-size: 12px; word-break: break-all; }
+
+/* Ver2.0.0-rc1 UI restructure */
+.nav-group{display:grid;gap:4px;margin-bottom:10px}
+.nav-group-title{font-size:12px;font-weight:700;color:#93c5fd;padding:10px 10px 4px;border-top:1px solid rgba(148,163,184,.22)}
+.nav-group:first-child .nav-group-title{border-top:0}
+.device-detail-tab-nav{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:10px;border:1px solid rgba(148,163,184,.25);border-radius:14px;background:rgba(15,23,42,.88);backdrop-filter:blur(8px)}
+.device-detail-tab-nav a{padding:8px 12px;border-radius:999px;border:1px solid rgba(148,163,184,.25);text-decoration:none}
+.device-detail-tab-nav a:hover{background:rgba(59,130,246,.18)}
+.page-subtitle{display:inline-block;font-size:13px;font-weight:500;color:#94a3b8;margin-left:8px}

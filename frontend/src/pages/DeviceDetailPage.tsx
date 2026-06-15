@@ -139,6 +139,13 @@ export default function DeviceDetailPage() {
   const renderCustomValue=(f:CustomField)=> f.field_type==='url'&&f.field_value ? <a className="text-link" href={f.field_value} target="_blank" rel="noreferrer">{f.field_value}</a> : f.field_type==='textarea' ? <span className="multiline-value">{f.field_value}</span> : <span>{f.field_value}</span>;
 
   if(!device||!deviceForm) return <>
+      <div className="device-detail-tab-nav device-detail-tab-nav-v200">
+        <a href="#basic">基本</a>
+        <a href="#network">ネットワーク</a>
+        <a href="#hardware">ハードウェア</a>
+        <a href="#maintenance">保守</a>
+        <a href="#photos">写真</a>
+      </div>
     <datalist id="device-icon-options">
       {DEVICE_ICON_OPTIONS.map(opt=><option key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</option>)}
     </datalist><h2>機器詳細</h2><div className="card">読み込み中...</div></>;
