@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.9.3 Home Lab Health
+MVP Ver1.9.4 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -223,4 +223,11 @@ MVP Ver1.9.3 Home Lab Health
 
 - ネットワークスキャンのタイムアウト対策
 - APIタイムアウト延長、標準ポート削減、Ping ON/OFF追加
+- HTMLマニュアル更新
+
+
+## Ver1.9.4
+
+- ネットワークスキャンのIP/MAC重複登録防止
+- MACアドレス、ベンダー候補、サービス候補の表示追加
 - HTMLマニュアル更新

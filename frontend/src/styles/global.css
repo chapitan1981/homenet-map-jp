@@ -1723,3 +1723,6 @@ button:disabled {
   gap: 8px;
   min-height: 42px;
 }
+
+/* Ver1.9.4 network scan mac duplicate */
+.table code { font-size: 12px; word-break: break-all; }

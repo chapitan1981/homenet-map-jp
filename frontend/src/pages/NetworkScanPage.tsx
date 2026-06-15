@@ -10,6 +10,11 @@ type ScanResult = {
   hostname:string;
   registered:boolean;
   suggested_name:string;
+  mac_address?:string;
+  vendor_hint?:string;
+  service_hint?:string;
+  duplicate_reason?:string;
+  registered_device?:{id?:number; name?:string};
 };
 
 export default function NetworkScanPage(){
@@ -51,7 +56,7 @@ export default function NetworkScanPage(){
         ip_address:r.ip,
         device_type:'network',
         icon:'network',
-        note:`open_ports=${r.open_ports.join(',')}; ping=${r.ping}`,
+        note:`ip=${r.ip}; mac=${r.mac_address || ''}; vendor=${r.vendor_hint || ''}; services=${r.service_hint || ''}; open_ports=${r.open_ports.join(',')}; ping=${r.ping}`,
       });
       setMessage(`${name} を機器管理へ追加しました。`);
       setResults(results.map(x=>x.ip===r.ip?{...x,registered:true,suggested_name:name}:x));
@@ -73,7 +78,7 @@ export default function NetworkScanPage(){
 
     <div className="card">
       <h3>指定範囲をスキャン</h3>
-      <p className="photo-hint">LAN内の軽量TCP/Ping確認を行います。対象は最大256ホスト、TCPポートは10個以下です。タイムアウトは300〜1000ms程度がおすすめです。</p>
+      <p className="photo-hint">LAN内の軽量TCP/Ping確認を行います。検出後にARPテーブルからMACアドレスとベンダー候補も表示します。登録済みIP/MACは追加できません。</p>
       <div className="device-form-grid">
         <input value={cidr} onChange={e=>setCidr(e.target.value)} placeholder="192.168.0.0/24"/>
         <input value={ports} onChange={e=>setPorts(e.target.value)} placeholder="22,80,443"/>
@@ -93,6 +98,8 @@ export default function NetworkScanPage(){
             <th>状態</th>
             <th>IP</th>
             <th>ホスト名</th>
+            <th>MAC</th>
+            <th>推定</th>
             <th>Ping</th>
             <th>Open Ports</th>
             <th>登録</th>
@@ -104,9 +111,11 @@ export default function NetworkScanPage(){
             <td>{r.online?'オンライン':'-'}</td>
             <td>{r.ip}</td>
             <td>{r.hostname || '-'}</td>
+            <td><code>{r.mac_address || '-'}</code></td>
+            <td>{r.vendor_hint || r.service_hint || '-'}</td>
             <td>{r.ping?'OK':'-'}</td>
             <td>{r.open_ports.join(', ') || '-'}</td>
-            <td>{r.registered?'登録済み':'未登録'}</td>
+            <td>{r.registered ? `登録済み${r.duplicate_reason ? ' / ' + r.duplicate_reason : ''}` : '未登録'}</td>
             <td>
               {!r.registered && <button className="small-button" onClick={()=>addDevice(r)}>機器管理へ追加</button>}
             </td>

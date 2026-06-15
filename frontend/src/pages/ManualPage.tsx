@@ -260,6 +260,19 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
+      
+        <section id="v194" className="card">
+          <h3>Ver1.9.4追記：ネットワークスキャンの重複防止とMAC表示</h3>
+          <p>スキャン結果にMACアドレス、ベンダー候補、サービス候補を表示するようにしました。</p>
+          <ul>
+            <li>登録済みIPと重複する機器は追加できません。</li>
+            <li>登録済みMACと重複する機器も追加できません。</li>
+            <li>ARPテーブルからMACアドレスを取得します。</li>
+            <li>主要OUIからベンダー候補を簡易表示します。</li>
+            <li>開放ポートからSSH/HTTP/SMB/Proxmox/Home Assistantなどを推定表示します。</li>
+          </ul>
+        </section>
+
       </main>
     </div>
   </>;
