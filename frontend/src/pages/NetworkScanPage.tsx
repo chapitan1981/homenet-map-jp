@@ -39,7 +39,7 @@ export default function NetworkScanPage(){
         ping,
       });
       setResults(res.data.results || []);
-      setMessage(`スキャン完了: ${res.data.count || 0}件検出 / MAC取得 ${res.data.mac_count || 0}件 / ARP ${res.data.arp_count || 0}件 / ${res.data.source || 'host-script'}`);
+      setMessage(`読込完了: ${res.data.count || 0}件 / MAC取得 ${res.data.mac_count || 0}件 / ARP ${res.data.arp_count || 0}件 / ${res.data.script_context || res.data.source || 'true-host-script'}`);
     }catch(err:any){
       setMessage(`スキャン失敗: ${JSON.stringify(err?.response?.data || err?.message || 'unknown error')}`);
     }finally{
@@ -77,8 +77,8 @@ export default function NetworkScanPage(){
     {message&&<div className={message.includes('失敗')?'status-message error':'status-message'}>{message}</div>}
 
     <div className="card">
-      <h3>指定範囲をスキャン</h3>
-      <p className="photo-hint">LAN内の軽量TCP/Ping確認を行います。Ubuntuホスト側スクリプトでスキャンし、ARPからMACアドレスとベンダー候補も表示します。登録済みIP/MACは追加できません。</p>
+      <h3>Ubuntuホスト側スキャン結果を読み込み</h3>
+      <p className="photo-hint">Ubuntuホストで scripts/host_network_scan.py を実行して作成したJSONを読み込みます。Docker内ではMACが取れないため、真のホスト実行方式に変更しました。登録済みIP/MACは追加できません。</p>
       <div className="device-form-grid">
         <input value={cidr} onChange={e=>setCidr(e.target.value)} placeholder="192.168.0.0/24"/>
         <input value={ports} onChange={e=>setPorts(e.target.value)} placeholder="22,80,443"/>
@@ -86,8 +86,16 @@ export default function NetworkScanPage(){
         <label className="checkbox-line"><input type="checkbox" checked={ping} onChange={e=>setPing(e.target.checked)}/> Pingも確認</label>
       </div>
       <div className="device-save-bar">
-        <button className="primary-save-button" onClick={scan} disabled={loading}>{loading?'スキャン中...':'スキャン実行'}</button>
+        <button className="primary-save-button" onClick={scan} disabled={loading}>{loading?'スキャン中...':'ホストスキャン結果を読み込み'}</button>
       </div>
+    </div>
+
+    <div className="card">
+      <h3>ホスト側で実行するコマンド</h3>
+      <p className="photo-hint">下記をUbuntuホストで実行してから、この画面の「ホストスキャン結果を読み込み」を押してください。</p>
+      <pre><code>{`cd ~/homenet-map-jp
+python3 scripts/host_network_scan.py --cidr 192.168.0.0/24 --out backend/app/data/network_scan_result.json
+cat backend/app/data/network_scan_result.json | jq '.count, .mac_count, .arp_count'`}</code></pre>
     </div>
 
     <div className="card">

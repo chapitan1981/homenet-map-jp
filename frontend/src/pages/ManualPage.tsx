@@ -160,7 +160,7 @@ git reset --hard origin/main
 docker compose down
 docker compose up -d --build --force-recreate`}</code></pre>
         </section>
-      
+
         <section id="v180" className="card">
           <h3>Ver1.8.0追記：データ保護と構成図フィルタ</h3>
           <p>Ver1.8.0では、データ保護画面と構成図の表示切替を強化しました。</p>
@@ -174,7 +174,7 @@ docker compose up -d --build --force-recreate`}</code></pre>
 cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></pre>
         </section>
 
-      
+
         <section id="v181" className="card">
           <h3>Ver1.8.1追記：時刻表示の修正</h3>
           <p>APIがUTC時刻をタイムゾーン情報なしで返す場合、ブラウザがJSTとして解釈して9時間ずれる問題を修正しました。</p>
@@ -185,7 +185,7 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
-      
+
         <section id="v182" className="card">
           <h3>Ver1.8.2追記：監視一覧の時刻修正</h3>
           <p>Ver1.8.1で未修正だった監視一覧の「最終確認」時刻をJST表示へ変換するよう修正しました。</p>
@@ -195,13 +195,13 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
-      
+
         <section id="v183" className="card">
           <h3>Ver1.8.3追記：監視一覧の最終確認を直接修正</h3>
           <p>監視一覧の「最終確認」列が別フィールドから描画されていたため、対応フィールドを追加してJST表示へ補正しました。</p>
         </section>
 
-      
+
         <section id="v185" className="card">
           <h3>Ver1.8.5追記：監視一覧の時刻表示を直接修正</h3>
           <p>監視一覧の「最終確認」列で直接 <code>new Date(...).toLocaleString('ja-JP')</code> を使っていた箇所を、JST変換関数へ置き換えました。</p>
@@ -212,7 +212,7 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
-      
+
         <section id="v186" className="card">
           <h3>Ver1.8.6追記：全体の時刻表示を共通化</h3>
           <p>監視一覧だけでなく、バックアップ、機器詳細、写真、更新日時などの共通時刻表示をJST変換関数へ統一しました。</p>
@@ -223,7 +223,7 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
-      
+
         <section id="v190" className="card">
           <h3>Ver1.9.0追記：ネットワークスキャン</h3>
           <p>指定したCIDR範囲をスキャンし、応答がある未登録機器を候補として表示できます。</p>
@@ -236,7 +236,7 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           <p>注意: 自分が管理するネットワーク以外をスキャンしないでください。</p>
         </section>
 
-      
+
         <section id="v192" className="card">
           <h3>Ver1.9.2追記：左メニュー復旧</h3>
           <p>Ver1.9.1で左メニューのCSS構造が崩れたため、元のSidebar構造へ戻し、ネットワークスキャンだけを追加しました。</p>
@@ -247,7 +247,7 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
-      
+
         <section id="v193" className="card">
           <h3>Ver1.9.3追記：ネットワークスキャンのタイムアウト対策</h3>
           <p>Ver1.9.2で /24 スキャン時に30秒タイムアウトする問題を改善しました。</p>
@@ -260,7 +260,7 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
-      
+
         <section id="v194" className="card">
           <h3>Ver1.9.4追記：ネットワークスキャンの重複防止とMAC表示</h3>
           <p>スキャン結果にMACアドレス、ベンダー候補、サービス候補を表示するようにしました。</p>
@@ -291,6 +291,14 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
             <li>結果は <code>backend/app/data/network_scan_result.json</code> に保存されます。</li>
             <li>Backendコンテナに <code>./scripts:/app/scripts:ro</code> をマウントします。</li>
           </ul>
+        </section>
+
+              <section id="v197" className="card">
+          <h3>Ver1.9.7追記：True Host Scanner Fix</h3>
+          <p>アプリはスキャンを実行せず、Ubuntuホストで実行済みのJSONを読み込む方式へ変更しました。</p>
+          <pre><code>{`cd ~/homenet-map-jp
+python3 scripts/host_network_scan.py --cidr 192.168.0.0/24 --out backend/app/data/network_scan_result.json
+cat backend/app/data/network_scan_result.json | jq '.count, .mac_count, .arp_count'`}</code></pre>
         </section>
 
       </main>

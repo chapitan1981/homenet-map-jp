@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.9.6 Home Lab Health
+MVP Ver1.9.7 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -245,3 +245,9 @@ MVP Ver1.9.6 Home Lab Health
 - ネットワークスキャンをUbuntuホスト側スクリプト方式へ変更
 - MAC/ARP取得精度を改善
 - HTMLマニュアル更新
+
+
+## Ver1.9.7
+
+- True Host Scanner Fix
+- Ubuntuホストで作成したJSONをアプリが読み込む方式へ変更
