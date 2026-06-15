@@ -273,6 +273,16 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
+              <section id="v195" className="card">
+          <h3>Ver1.9.5追記：MACアドレス取得修正</h3>
+          <p>Dockerコンテナ内のARPではLAN側MACが取れない場合があるため、ホスト側 <code>/proc/net/arp</code> をBackendへ読み取り専用マウントする方式に変更しました。</p>
+          <ul>
+            <li><code>/proc/net/arp:/host/proc/net/arp:ro</code> を追加しました。</li>
+            <li>スキャン完了メッセージにMAC取得件数とARP取得元を表示します。</li>
+            <li>確認用API <code>/api/network-scan/arp-debug</code> を追加しました。</li>
+          </ul>
+        </section>
+
       </main>
     </div>
   </>;

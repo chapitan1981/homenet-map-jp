@@ -23,12 +23,7 @@ OUI_HINTS = {
     "cc:2d:e0": "Xiaomi", "64:cc:22": "Xiaomi", "28:6c:07": "Xiaomi",
     "3c:7c:3f": "Apple", "f0:18:98": "Apple", "a4:83:e7": "Apple",
 }
-PORT_HINTS = {
-    22: "SSH", 53: "DNS", 80: "HTTP", 139: "NetBIOS", 443: "HTTPS", 445: "SMB",
-    5000: "NAS/Web候補", 5001: "NAS HTTPS候補", 8006: "Proxmox",
-    8080: "HTTP-alt", 8081: "HTTP-alt", 8123: "Home Assistant",
-    32400: "Plex", 3880: "HomeNet Map UI", 3881: "HomeNet Map API",
-}
+PORT_HINTS = {22:"SSH",53:"DNS",80:"HTTP",139:"NetBIOS",443:"HTTPS",445:"SMB",5000:"NAS/Web候補",5001:"NAS HTTPS候補",8006:"Proxmox",8080:"HTTP-alt",8081:"HTTP-alt",8123:"Home Assistant",32400:"Plex",3880:"HomeNet Map UI",3881:"HomeNet Map API"}
 
 class ScanRequest(BaseModel):
     cidr: str = "192.168.0.0/24"
@@ -54,43 +49,61 @@ def vendor_from_mac(mac: str) -> str:
             return vendor
     return ""
 
-def read_arp_table() -> dict[str, str]:
+def read_arp_file(path: str) -> dict[str, str]:
     arp = {}
     try:
-        with open("/proc/net/arp", "r", encoding="utf-8", errors="ignore") as f:
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
             for line in f.readlines()[1:]:
                 parts = line.split()
                 if len(parts) >= 4 and MAC_RE.fullmatch(parts[3]):
-                    arp[parts[0]] = normalize_mac(parts[3])
+                    mac = normalize_mac(parts[3])
+                    if mac != "00:00:00:00:00:00":
+                        arp[parts[0]] = mac
     except Exception:
         pass
-    for cmd in (["ip", "neigh"], ["arp", "-an"]):
+    return arp
+
+def read_arp_table() -> tuple[dict[str, str], str]:
+    merged = {}
+    used = []
+    for path, name in [("/host/proc/net/arp", "host-proc"), ("/proc/net/arp", "container-proc")]:
+        data = read_arp_file(path)
+        if data:
+            merged.update(data)
+            used.append(name)
+    for cmd, name in [(["ip","neigh"], "ip-neigh"), (["arp","-an"], "arp-command")]:
         try:
             r = subprocess.run(cmd, capture_output=True, text=True, timeout=2)
+            found = False
             for line in r.stdout.splitlines():
                 ip = IP_RE.search(line)
                 mac = MAC_RE.search(line)
                 if ip and mac:
-                    arp[ip.group(0)] = normalize_mac(mac.group(0))
+                    value = normalize_mac(mac.group(0))
+                    if value != "00:00:00:00:00:00":
+                        merged[ip.group(0)] = value
+                        found = True
+            if found:
+                used.append(name)
         except Exception:
             pass
-    return arp
+    return merged, ",".join(used) if used else "none"
 
 def ping_host(ip: str, timeout_ms: int) -> bool:
     try:
         if "windows" in platform.system().lower():
-            cmd = ["ping", "-n", "1", "-w", str(timeout_ms), ip]
-            run_timeout = max(1, timeout_ms / 1000 + 0.5)
+            cmd = ["ping","-n","1","-w",str(timeout_ms),ip]
+            run_timeout = max(1, timeout_ms/1000+0.5)
         else:
-            cmd = ["ping", "-c", "1", "-W", "1", ip]
-            run_timeout = max(0.4, timeout_ms / 1000 + 0.4)
+            cmd = ["ping","-c","1","-W","1",ip]
+            run_timeout = max(0.4, timeout_ms/1000+0.4)
         return subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=run_timeout).returncode == 0
     except Exception:
         return False
 
 def tcp_check(ip: str, port: int, timeout_ms: int) -> bool:
     try:
-        with socket.create_connection((ip, port), timeout=max(0.1, timeout_ms / 1000)):
+        with socket.create_connection((ip, port), timeout=max(0.1, timeout_ms/1000)):
             return True
     except Exception:
         return False
@@ -105,18 +118,14 @@ def scan_one(ip: str, ports: list[int], timeout_ms: int, do_ping: bool) -> dict:
     open_ports = [p for p in ports if tcp_check(ip, p, timeout_ms)]
     ping_ok = ping_host(ip, timeout_ms) if do_ping else False
     online = ping_ok or bool(open_ports)
-    return {
-        "ip": ip, "online": online, "ping": ping_ok, "open_ports": open_ports,
-        "services": [PORT_HINTS.get(p, str(p)) for p in open_ports],
-        "hostname": reverse_dns(ip) if online else "",
-    }
+    return {"ip": ip, "online": online, "ping": ping_ok, "open_ports": open_ports, "services": [PORT_HINTS.get(p, str(p)) for p in open_ports], "hostname": reverse_dns(ip) if online else ""}
 
 def collect_registered_inventory(db: Session):
     devices = db.query(models.Device).all()
     names = {getattr(d, "name", "") for d in devices}
     ips, macs = {}, {}
     for d in devices:
-        text = " ".join([str(getattr(d, x, "") or "") for x in ["name", "description", "model", "vendor"]])
+        text = " ".join([str(getattr(d, x, "") or "") for x in ["name","description","model","vendor"]])
         for ip in IP_RE.findall(text):
             ips[ip] = {"id": getattr(d, "id", None), "name": getattr(d, "name", "")}
         for mm in MAC_RE.finditer(text):
@@ -162,18 +171,15 @@ def scan_network(req: ScanRequest, db: Session = Depends(get_db)):
             pass
     if len(ports) > 12:
         raise HTTPException(status_code=400, detail="TCPポート数が多すぎます。12個以下にしてください。")
-
     existing_names, existing_ips, existing_macs = collect_registered_inventory(db)
-    max_workers = min(128, max(16, len(hosts)))
     results = []
+    max_workers = min(128, max(16, len(hosts)))
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futs = [ex.submit(scan_one, str(ip), ports, req.timeout_ms, req.ping) for ip in hosts]
-        for fut in concurrent.futures.as_completed(futs):
+        for fut in concurrent.futures.as_completed([ex.submit(scan_one, str(ip), ports, req.timeout_ms, req.ping) for ip in hosts]):
             r = fut.result()
             if r["online"]:
                 results.append(r)
-
-    arp = read_arp_table()
+    arp, arp_source = read_arp_table()
     for r in results:
         mac = arp.get(r["ip"], "")
         vendor = vendor_from_mac(mac)
@@ -187,9 +193,8 @@ def scan_network(req: ScanRequest, db: Session = Depends(get_db)):
         r["duplicate_reason"] = "IP重複" if dup_ip else ("MAC重複" if dup_mac else ("名称重複" if suggested in existing_names else ""))
         r["registered_device"] = dup_ip or dup_mac or None
         r["suggested_name"] = suggested
-
     results.sort(key=lambda x: tuple(int(n) for n in x["ip"].split(".")))
-    return {"cidr": str(net), "count": len(results), "results": results}
+    return {"cidr": str(net), "count": len(results), "results": results, "arp_source": arp_source, "mac_count": len([r for r in results if r.get("mac_address")])}
 
 @router.post("/add-device")
 def add_scanned_device(req: AddDeviceRequest, db: Session = Depends(get_db)):
@@ -210,11 +215,13 @@ def add_scanned_device(req: AddDeviceRequest, db: Session = Depends(get_db)):
     desc = f"Network scan detected IP: {req.ip_address}"
     if note:
         desc += f"\\n{note}"
-    device = models.Device(
-        name=name, device_type=req.device_type or "network",
-        vendor="", model="", os_name="", description=desc, icon=req.icon or "network"
-    )
+    device = models.Device(name=name, device_type=req.device_type or "network", vendor="", model="", os_name="", description=desc, icon=req.icon or "network")
     db.add(device)
     db.commit()
     db.refresh(device)
     return device
+
+@router.get("/arp-debug")
+def arp_debug():
+    arp, source = read_arp_table()
+    return {"source": source, "count": len(arp), "host_proc_mounted": bool(read_arp_file("/host/proc/net/arp")), "container_proc_count": len(read_arp_file("/proc/net/arp")), "sample": [{"ip": ip, "mac": mac, "vendor_hint": vendor_from_mac(mac)} for ip, mac in list(arp.items())[:30]]}

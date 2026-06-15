@@ -40,8 +40,8 @@ app.include_router(racks.router, prefix="/api")
 def version():
     return {
         "name": "HomeNet Map JP",
-        "version": "1.9.4",
-        "build": "manual-v1.9.4-network-scan-duplicate-mac-enhance"
+        "version": "1.9.5",
+        "build": "manual-v1.9.5-network-scan-host-arp-fix"
     }
 
 app.include_router(custom_fields.router, prefix="/api")

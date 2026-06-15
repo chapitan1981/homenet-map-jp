@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.9.4 Home Lab Health
+MVP Ver1.9.5 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -230,4 +230,11 @@ MVP Ver1.9.4 Home Lab Health
 
 - ネットワークスキャンのIP/MAC重複登録防止
 - MACアドレス、ベンダー候補、サービス候補の表示追加
+- HTMLマニュアル更新
+
+
+## Ver1.9.5
+
+- ネットワークスキャンのMAC取得をホストARP方式へ修正
+- ARP debug API追加
 - HTMLマニュアル更新

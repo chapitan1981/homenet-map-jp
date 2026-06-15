@@ -10,6 +10,7 @@ services:
     volumes:
       - ./backend/app/data:/app/app/data
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/net/arp:/host/proc/net/arp:ro
     environment:
       - TZ=Asia/Tokyo
       - DATABASE_URL=sqlite:///./app/data/homenet.db
