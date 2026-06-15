@@ -247,6 +247,19 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
+      
+        <section id="v193" className="card">
+          <h3>Ver1.9.3追記：ネットワークスキャンのタイムアウト対策</h3>
+          <p>Ver1.9.2で /24 スキャン時に30秒タイムアウトする問題を改善しました。</p>
+          <ul>
+            <li>フロント側APIタイムアウトを180秒へ延長しました。</li>
+            <li>標準ポートを <code>22,80,443,3880,3881</code> に減らしました。</li>
+            <li>標準タイムアウトを <code>300ms</code> に変更しました。</li>
+            <li>TCPポート数は10個以下に制限しています。</li>
+            <li>Ping確認をON/OFFできるようにしました。</li>
+          </ul>
+        </section>
+
       </main>
     </div>
   </>;

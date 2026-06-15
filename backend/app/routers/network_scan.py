@@ -16,9 +16,10 @@ router = APIRouter(prefix="/network-scan", tags=["network-scan"])
 
 class ScanRequest(BaseModel):
     cidr: str = "192.168.0.0/24"
-    tcp_ports: str = "22,80,443,8000,8080,8081,8123,3880,3881"
-    timeout_ms: int = 700
+    tcp_ports: str = "22,80,443,3880,3881"
+    timeout_ms: int = 300
     max_hosts: int = 256
+    ping: bool = True
 
 
 class AddDeviceRequest(BaseModel):
@@ -34,10 +35,11 @@ def ping_host(ip: str, timeout_ms: int) -> bool:
         system = platform.system().lower()
         if "windows" in system:
             cmd = ["ping", "-n", "1", "-w", str(timeout_ms), ip]
+            run_timeout = max(1, timeout_ms / 1000 + 0.5)
         else:
-            timeout_s = max(1, int(timeout_ms / 1000))
-            cmd = ["ping", "-c", "1", "-W", str(timeout_s), ip]
-        r = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=max(1, int(timeout_ms/1000)+1))
+            cmd = ["ping", "-c", "1", "-W", "1", ip]
+            run_timeout = max(0.4, timeout_ms / 1000 + 0.4)
+        r = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=run_timeout)
         return r.returncode == 0
     except Exception:
         return False
@@ -45,7 +47,7 @@ def ping_host(ip: str, timeout_ms: int) -> bool:
 
 def tcp_check(ip: str, port: int, timeout_ms: int) -> bool:
     try:
-        with socket.create_connection((ip, port), timeout=max(0.2, timeout_ms / 1000)):
+        with socket.create_connection((ip, port), timeout=max(0.1, timeout_ms / 1000)):
             return True
     except Exception:
         return False
@@ -58,13 +60,15 @@ def reverse_dns(ip: str) -> str:
         return ""
 
 
-def scan_one(ip: str, ports: list[int], timeout_ms: int) -> dict:
+def scan_one(ip: str, ports: list[int], timeout_ms: int, do_ping: bool) -> dict:
     open_ports = []
-    ping_ok = ping_host(ip, timeout_ms)
     for p in ports:
         if tcp_check(ip, p, timeout_ms):
             open_ports.append(p)
+
+    ping_ok = ping_host(ip, timeout_ms) if do_ping else False
     online = ping_ok or bool(open_ports)
+
     return {
         "ip": ip,
         "online": online,
@@ -97,6 +101,9 @@ def scan_network(req: ScanRequest, db: Session = Depends(get_db)):
         except Exception:
             pass
 
+    if len(ports) > 10:
+        raise HTTPException(status_code=400, detail="TCPポート数が多すぎます。10個以下にしてください。")
+
     existing_devices = db.query(models.Device).all()
     existing_names = {getattr(d, "name", "") for d in existing_devices}
     existing_ips = set()
@@ -111,8 +118,9 @@ def scan_network(req: ScanRequest, db: Session = Depends(get_db)):
                 pass
 
     results = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=32) as ex:
-        futs = [ex.submit(scan_one, str(ip), ports, req.timeout_ms) for ip in hosts]
+    max_workers = min(128, max(16, len(hosts)))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futs = [ex.submit(scan_one, str(ip), ports, req.timeout_ms, req.ping) for ip in hosts]
         for fut in concurrent.futures.as_completed(futs):
             r = fut.result()
             if r["online"]:
@@ -126,6 +134,12 @@ def scan_network(req: ScanRequest, db: Session = Depends(get_db)):
         "cidr": str(net),
         "count": len(results),
         "results": results,
+        "scan_options": {
+            "timeout_ms": req.timeout_ms,
+            "ports": ports,
+            "ping": req.ping,
+            "max_workers": max_workers,
+        }
     }
 
 

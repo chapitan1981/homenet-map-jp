@@ -14,9 +14,10 @@ type ScanResult = {
 
 export default function NetworkScanPage(){
   const [cidr,setCidr]=useState('192.168.0.0/24');
-  const [ports,setPorts]=useState('22,80,443,8000,8080,8081,8123,3880,3881');
-  const [timeout,setTimeoutMs]=useState(700);
+  const [ports,setPorts]=useState('22,80,443,3880,3881');
+  const [timeout,setTimeoutMs]=useState(300);
   const [loading,setLoading]=useState(false);
+  const [ping,setPing]=useState(true);
   const [message,setMessage]=useState('');
   const [results,setResults]=useState<ScanResult[]>([]);
 
@@ -30,6 +31,7 @@ export default function NetworkScanPage(){
         tcp_ports:ports,
         timeout_ms:timeout,
         max_hosts:256,
+        ping,
       });
       setResults(res.data.results || []);
       setMessage(`スキャン完了: ${res.data.count || 0}件検出`);
@@ -71,11 +73,12 @@ export default function NetworkScanPage(){
 
     <div className="card">
       <h3>指定範囲をスキャン</h3>
-      <p className="photo-hint">LAN内の軽量Ping/TCP確認を行います。対象は最大256ホストまでです。</p>
+      <p className="photo-hint">LAN内の軽量TCP/Ping確認を行います。対象は最大256ホスト、TCPポートは10個以下です。タイムアウトは300〜1000ms程度がおすすめです。</p>
       <div className="device-form-grid">
         <input value={cidr} onChange={e=>setCidr(e.target.value)} placeholder="192.168.0.0/24"/>
         <input value={ports} onChange={e=>setPorts(e.target.value)} placeholder="22,80,443"/>
         <input type="number" value={timeout} onChange={e=>setTimeoutMs(Number(e.target.value))} placeholder="timeout ms"/>
+        <label className="checkbox-line"><input type="checkbox" checked={ping} onChange={e=>setPing(e.target.checked)}/> Pingも確認</label>
       </div>
       <div className="device-save-bar">
         <button className="primary-save-button" onClick={scan} disabled={loading}>{loading?'スキャン中...':'スキャン実行'}</button>
