@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver1.9.5 Home Lab Health
+MVP Ver1.9.6 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -237,4 +237,11 @@ MVP Ver1.9.5 Home Lab Health
 
 - ネットワークスキャンのMAC取得をホストARP方式へ修正
 - ARP debug API追加
+- HTMLマニュアル更新
+
+
+## Ver1.9.6
+
+- ネットワークスキャンをUbuntuホスト側スクリプト方式へ変更
+- MAC/ARP取得精度を改善
 - HTMLマニュアル更新

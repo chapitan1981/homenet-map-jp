@@ -283,6 +283,16 @@ cp -a backend/app/data backend/app/data.backup.$(date +%Y%m%d_%H%M%S)`}</code></
           </ul>
         </section>
 
+              <section id="v196" className="card">
+          <h3>Ver1.9.6追記：Host Network Scanner方式</h3>
+          <p>Dockerコンテナ内ではMACが取得できないため、Ubuntuホスト側スキャンスクリプトで結果JSONを作成し、アプリが読み込む方式に変更しました。</p>
+          <ul>
+            <li><code>scripts/host_network_scan.py</code> を追加しました。</li>
+            <li>結果は <code>backend/app/data/network_scan_result.json</code> に保存されます。</li>
+            <li>Backendコンテナに <code>./scripts:/app/scripts:ro</code> をマウントします。</li>
+          </ul>
+        </section>
+
       </main>
     </div>
   </>;

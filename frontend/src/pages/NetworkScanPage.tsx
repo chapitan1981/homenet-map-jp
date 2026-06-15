@@ -39,7 +39,7 @@ export default function NetworkScanPage(){
         ping,
       });
       setResults(res.data.results || []);
-      setMessage(`スキャン完了: ${res.data.count || 0}件検出 / MAC取得 ${res.data.mac_count || 0}件 / ARP: ${res.data.arp_source || '-'}`);
+      setMessage(`スキャン完了: ${res.data.count || 0}件検出 / MAC取得 ${res.data.mac_count || 0}件 / ARP ${res.data.arp_count || 0}件 / ${res.data.source || 'host-script'}`);
     }catch(err:any){
       setMessage(`スキャン失敗: ${JSON.stringify(err?.response?.data || err?.message || 'unknown error')}`);
     }finally{
@@ -78,7 +78,7 @@ export default function NetworkScanPage(){
 
     <div className="card">
       <h3>指定範囲をスキャン</h3>
-      <p className="photo-hint">LAN内の軽量TCP/Ping確認を行います。ホスト側ARPテーブルからMACアドレスとベンダー候補も表示します。登録済みIP/MACは追加できません。</p>
+      <p className="photo-hint">LAN内の軽量TCP/Ping確認を行います。Ubuntuホスト側スクリプトでスキャンし、ARPからMACアドレスとベンダー候補も表示します。登録済みIP/MACは追加できません。</p>
       <div className="device-form-grid">
         <input value={cidr} onChange={e=>setCidr(e.target.value)} placeholder="192.168.0.0/24"/>
         <input value={ports} onChange={e=>setPorts(e.target.value)} placeholder="22,80,443"/>

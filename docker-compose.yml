@@ -9,6 +9,7 @@ services:
     # DATA PROTECTION: Do not remove this bind mount. It stores DB/photos/uploads on the host.
     volumes:
       - ./backend/app/data:/app/app/data
+      - ./scripts:/app/scripts:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /proc/net/arp:/host/proc/net/arp:ro
     environment:
