@@ -106,7 +106,7 @@ export default function InfrastructureMonitorPage(){
           {data.host.disk?.map((d:any)=><div className={`stable-check-card ${d.status}`} key={d.path}>
             <h4>{mark(d.status)} Disk {d.path}</h4>
             <p>{d.used_gb}GB / {d.total_gb}GB</p>
-            <div className="meter"><span style={{width:`${d.used_percent||0}%`}}></span></div>
+            <div className="meter"></div>
             <small>使用率 {d.used_percent}% / 空き {d.free_gb}GB</small>
           </div>)}
         </div>

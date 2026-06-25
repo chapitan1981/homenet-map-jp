@@ -243,9 +243,9 @@ export default function RoomLayoutPage() {
           <input placeholder="表示名" value={selectedLabel} onChange={e=>setSelectedLabel(e.target.value)} />
           <textarea placeholder="メモ" value={selectedNote} onChange={e=>setSelectedNote(e.target.value)} />
           <div className="placement-move-grid">
-            <span></span><button className="small-button" onClick={()=>moveSelected(0,-2)}>↑</button><span></span>
+            <button className="small-button" onClick={()=>moveSelected(0,-2)}>↑</button>
             <button className="small-button" onClick={()=>moveSelected(-2,0)}>←</button><button className="small-button" onClick={saveSelected}>保存</button><button className="small-button" onClick={()=>moveSelected(2,0)}>→</button>
-            <span></span><button className="small-button" onClick={()=>moveSelected(0,2)}>↓</button><span></span>
+            <button className="small-button" onClick={()=>moveSelected(0,2)}>↓</button>
           </div>
           <button className="danger-button" onClick={()=>deletePlacement(selectedPlacement.id)}>選択中の配置を削除</button>
         </>}

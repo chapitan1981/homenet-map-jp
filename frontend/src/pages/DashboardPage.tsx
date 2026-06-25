@@ -97,8 +97,8 @@ export default function DashboardPage() {
     </div>
 
     <div className="stable-notice">
-      <strong>Ver0.5.1 安定版</strong>
-      <span>大きな変更前や復元前は、バックアップ画面からZIP Exportを保存してください。</span>
+      
+      
     </div>
 
     {message&&<div className="status-message error">{message}</div>}

@@ -124,7 +124,7 @@ export default function ManualPage(){
           <h3>9. データ保護</h3>
           <p>登録済み機器・写真・部屋情報・監視設定は <code>backend/app/data</code> に保存します。</p>
           <p>通常更新では <code>docker compose down -v</code> を使わず、<code>backend/app/data</code> を削除しないでください。</p>
-          <p>大きな変更前は「バックアップ」画面からZIP Exportを保存してください。</p>
+          <p>大きな変更前は「バックアップ」画面から</p>
         </section>
 
         <section id="trouble" className="card">
@@ -309,6 +309,16 @@ cat backend/app/data/network_scan_result.json | jq '.count, .mac_count, .arp_cou
             <li>左メニューを「資産管理」「構成管理」「監視」「運用」「ヘルプ」に整理しました。</li>
             <li>ネットワークスキャン画面、Backend API、ホストスキャンスクリプトを削除しました。</li>
             <li>機器詳細にタブ型ショートカットを追加しました。</li>
+          </ul>
+        </section>
+
+      
+        <section id="v201" className="card">
+          <h3>Ver2.0.1追記：ダッシュボード整理</h3>
+          <p>ダッシュボード上に残っていた古い開発中メッセージとバックアップ注意文を削除しました。</p>
+          <ul>
+            <li>バージョン情報は左メニュー下部または設定画面で確認します。</li>
+            <li>ダッシュボードはホームラボの概要確認に集中する画面として整理します。</li>
           </ul>
         </section>
 

@@ -1,6 +1,6 @@
 # HomeNet Map JP
 
-MVP Ver2.0.0-rc1 Home Lab Health
+MVP Ver2.0.1 Home Lab Health
 
 ## Ver0.7.0 追加内容
 
@@ -258,4 +258,10 @@ MVP Ver2.0.0-rc1 Home Lab Health
 - ネットワークスキャン機能を削除
 - 機器詳細にタブ型ショートカットを追加
 - HomeNet Map JPの役割を「登録・整理・可視化」に整理
+- HTMLマニュアル更新
+
+## Ver2.0.1
+
+- ダッシュボード上の古い開発中メッセージを削除
+- 開発者向けバックアップ注意表示を削除
 - HTMLマニュアル更新
